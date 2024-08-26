@@ -1,0 +1,29 @@
+{
+  "1": {
+    "trainingId": 1,
+    "traineeId": 1,
+    "trainerId": 2,
+    "trainingName": "Strength Training",
+    "trainingType": "STRENGTH",
+    "trainingDate": "2024-08-30",
+    "trainingDuration": "60 minutes"
+  },
+  "2": {
+    "trainingId": 2,
+    "traineeId": 2,
+    "trainerId": 1,
+    "trainingName": "Cardio Blast",
+    "trainingType": "CARDIO",
+    "trainingDate": "2024-08-31",
+    "trainingDuration": "45 minutes"
+  },
+  "3": {
+    "trainingId": 3,
+    "traineeId": 3,
+    "trainerId": 3,
+    "trainingName": "Yoga Session",
+    "trainingType": "Flexibility",
+    "trainingDate": "2024-09-01",
+    "trainingDuration": "90 minutes"
+  }
+}
