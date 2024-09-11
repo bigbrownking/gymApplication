@@ -1,5 +1,8 @@
+
+
 import org.example.dao.TrainingDao;
 import org.example.models.Training;
+import org.example.models.TrainingTypeEntity;
 import org.example.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,17 +10,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
-public class TrainingServiceTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+class TrainingServiceTest {
 
     @Mock
     private TrainingDao trainingDao;
@@ -31,47 +32,96 @@ public class TrainingServiceTest {
     }
 
     @Test
-    public void shouldCreateTrainingSuccessfully() {
+    void createTraining_ShouldCreateTraining() {
+        // Arrange
         Training training = new Training();
-        training.setTrainingId(1L);
+        training.setTrainingType(new TrainingTypeEntity("Type1"));
 
+        // Act
         trainingService.createTraining(training);
 
-        verify(trainingDao, times(1)).create(training);
+        // Assert
+        verify(trainingDao).create(training);
     }
 
     @Test
-    public void givenId_whenGetTrainerById_thenSuccess() {
+    void getTraining_ShouldReturnTraining_WhenExists() {
+        // Arrange
         Training training = new Training();
-        training.setTrainingId(1L);
-        when(trainingDao.select(anyLong())).thenReturn(training);
+        Long trainingId = 1L;
+        when(trainingDao.select(trainingId)).thenReturn(training);
 
-        Training result = trainingService.getTraining(1L);
+        // Act
+        Training result = trainingService.getTraining(trainingId);
 
-        verify(trainingDao, times(1)).select(anyLong());
+        // Assert
         assertThat(result).isEqualTo(training);
     }
 
     @Test
-    public void getAllTrainingsSuccessfully() {
-        Training training1 = new Training();
-        Training training2 = new Training();
-        List<Training> trainings = Arrays.asList(training1, training2);
+    void getTraining_ShouldReturnNull_WhenNotExists() {
+        // Arrange
+        Long trainingId = 1L;
+        when(trainingDao.select(trainingId)).thenReturn(null);
+
+        // Act
+        Training result = trainingService.getTraining(trainingId);
+
+        // Assert
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void getAllTrainings_ShouldReturnListOfTrainings() {
+        // Arrange
+        List<Training> trainings = new ArrayList<>();
+        trainings.add(new Training());
+        trainings.add(new Training());
         when(trainingDao.listAll()).thenReturn(trainings);
 
+        // Act
         List<Training> result = trainingService.getAllTrainings();
 
-        verify(trainingDao, times(1)).listAll();
+        // Assert
         assertThat(result).isEqualTo(trainings);
     }
 
     @Test
-    public void shouldUpdateTrainingSuccessfully() {
+    void updateTraining_ShouldUpdateTraining() {
+        // Arrange
         Training training = new Training();
-        training.setTrainingId(1L);
 
+        // Act
         trainingService.updateTraining(training);
 
-        verify(trainingDao, times(1)).updateTraining(training);
+        // Assert
+        verify(trainingDao).updateTraining(training);
+    }
+
+    @Test
+    void getTrainingType_ShouldReturnTrainingTypeEntity_WhenExists() {
+        // Arrange
+        TrainingTypeEntity trainingTypeEntity = new TrainingTypeEntity("Type1");
+        String trainingTypeName = "Type1";
+        when(trainingDao.getTrainingType(trainingTypeName)).thenReturn(trainingTypeEntity);
+
+        // Act
+        TrainingTypeEntity result = trainingService.getTrainingType(trainingTypeName);
+
+        // Assert
+        assertThat(result).isEqualTo(trainingTypeEntity);
+    }
+
+    @Test
+    void getTrainingType_ShouldReturnNull_WhenNotExists() {
+        // Arrange
+        String trainingTypeName = "Type1";
+        when(trainingDao.getTrainingType(trainingTypeName)).thenReturn(null);
+
+        // Act
+        TrainingTypeEntity result = trainingService.getTrainingType(trainingTypeName);
+
+        // Assert
+        assertThat(result).isNull();
     }
 }

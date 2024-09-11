@@ -2,15 +2,14 @@ package org.example.service.impl;
 
 import org.example.dao.TrainingDao;
 import org.example.models.Training;
+import org.example.models.TrainingTypeEntity;
 import org.example.service.TrainingService;
-import org.example.util.LogUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 @Service
 public class TrainingServiceImpl implements TrainingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainingServiceImpl.class);
@@ -40,9 +39,14 @@ public class TrainingServiceImpl implements TrainingService {
         return trainingDao.listAll();
     }
 
-    @Override// just for setting traineeId to null, if trainee "cancels" his subscription
+    @Override
     public void updateTraining(Training training) {
         LOGGER.info("Updating the training...");
         trainingDao.updateTraining(training);
+    }
+
+    @Override
+    public TrainingTypeEntity getTrainingType(String trainingType) {
+        return trainingDao.getTrainingType(trainingType);
     }
 }
