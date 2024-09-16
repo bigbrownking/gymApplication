@@ -4,15 +4,31 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
+import jakarta.persistence.*;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
+@Entity
+@Table(name = "trainers")
 public class Trainer extends User{
-    private String specialization;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long trainerId;
+
+    @OneToOne
+    @JoinColumn(name = "specialization_id")
+    private TrainingTypeEntity specialization;
+
+    @OneToMany(mappedBy = "trainer")
+    private List<Training> trainings;
 
     public Trainer(String firstName,
                    String lastName,
-                   String specialization) {
+                   TrainingTypeEntity specialization) {
         super(firstName, lastName);
         this.specialization = specialization;
     }
@@ -25,7 +41,7 @@ public class Trainer extends User{
                 ", userName=" + getUsername() +
                 ", password=" + getPassword() +
                 ", isActive=" + isActive() +
-                ", userId=" + getUserId() +
+                ", userId=" + getTrainerId() +
                 ", specialization='" + specialization + '\'' +
                 '}';
     }

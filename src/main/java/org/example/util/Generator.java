@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class Generator {
-    private static final AtomicLong idCounter = new AtomicLong();
 
     public String generateUsername(String firstName, String lastName, List<String> existingUsernames) {
         if (existingUsernames == null) {
@@ -30,15 +29,5 @@ public class Generator {
         return new RandomStringGenerator.Builder()
                 .withinRange('0', 'z')
                 .get().generate(10);
-    }
-    public <T extends User> Long generateId(List<T> existingEntities) {
-        Set<Long> existingIds = existingEntities.stream()
-                .map(User::getUserId)
-                .collect(Collectors.toSet());
-        long newId;
-        do {
-            newId = idCounter.incrementAndGet();
-        } while (existingIds.contains(newId));
-        return newId;
     }
 }

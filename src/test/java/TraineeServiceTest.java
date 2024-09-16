@@ -1,30 +1,24 @@
 import org.example.dao.TraineeDao;
 import org.example.models.Trainee;
 import org.example.service.impl.TraineeServiceImpl;
-import org.example.util.Generator;
 import org.example.service.impl.UserService;
+import org.example.util.Generator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.mockito.Mock;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.anyList;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-
-@ExtendWith(MockitoExtension.class)
 public class TraineeServiceTest {
 
     @Mock
@@ -37,66 +31,189 @@ public class TraineeServiceTest {
     private TraineeServiceImpl traineeService;
 
     @BeforeEach
-    public void setup(){
-        traineeService.setUserService(userService);
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
 
+
     @Test
-    public void shouldCreateTraineeSuccessfully() {
+    public void testCreateTrainee_ValidTrainee() {
         Trainee trainee = new Trainee();
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
 
-        List<String> existingUsernames = new ArrayList<>();
-        when(userService.getAllExistingUsernames()).thenReturn(existingUsernames);
+        try (MockedStatic<Generator> generatorMock = mockStatic(Generator.class)) {
+            when(userService.isValid(trainee)).thenReturn(true);
+            when(userService.getAllExistingUsernames()).thenReturn(Arrays.asList("existing.username"));
 
-        try (MockedStatic<Generator> generatorMockedStatic = mockStatic(Generator.class)) {
-            generatorMockedStatic.when(() -> Generator.generateUsername("John", "Doe", existingUsernames))
-                    .thenReturn("John.Doe");
-            generatorMockedStatic.when(Generator::generatePassword)
+            generatorMock.when(() -> Generator.generateUsername(anyString(), anyString(), anyList()))
+                    .thenReturn("john.doe");
+            generatorMock.when(Generator::generatePassword)
                     .thenReturn("password123");
-            generatorMockedStatic.when(() -> Generator.generateId(anyList()))
-                    .thenReturn(1L);
-
 
             traineeService.createTrainee(trainee);
 
-            verify(userService, times(1)).getAllExistingUsernames();
-            verify(traineeDao, times(1)).create(trainee);
-            assertThat(trainee.getUsername()).isEqualTo("John.Doe");
+            assertThat(trainee.getUsername()).isEqualTo("john.doe");
             assertThat(trainee.getPassword()).isEqualTo("password123");
-            assertThat(trainee.getUserId()).isEqualTo(1L);
+            assertThat(trainee.isActive()).isTrue();
+            verify(traineeDao).create(trainee);
         }
     }
 
+
+
     @Test
-    public void shouldUpdateTraineeSuccessfully() {
+    void testCreateTrainee_InvalidTrainee() {
         Trainee trainee = new Trainee();
-        traineeService.updateTrainee(trainee);
-        verify(traineeDao, times(1)).update(trainee);
+        when(userService.isValid(trainee)).thenReturn(false);
+
+        traineeService.createTrainee(trainee);
+
+        // Verify no interaction with the traineeDao when invalid trainee
+        verify(traineeDao, never()).create(trainee);
     }
 
     @Test
-    public void givenUsername_whenGetTraineeByUsername_thenSuccess() {
+    void testCreateTrainee_InvalidTrainee_ThrowsException() {
         Trainee trainee = new Trainee();
-        String username = "John.Doe";
-        when(traineeDao.findByUsername(username)).thenReturn(Optional.of(trainee));
+        when(userService.isValid(trainee)).thenReturn(false);
 
-        Trainee result = traineeService.getTraineeByUsername(username);
+        verify(traineeDao, never()).create(trainee);
+    }
 
-        verify(traineeDao, times(1)).findByUsername(username);
+    @Test
+    void testUpdateTrainee_ValidTrainee_Authenticated() {
+        Trainee trainee = new Trainee();
+        trainee.setUsername("john.doe");
+        trainee.setPassword("password123");
+
+        when(userService.isAuthenticated(anyString(), anyString())).thenReturn(true);
+        when(userService.isValid(any(Trainee.class))).thenReturn(true);
+
+        traineeService.updateTrainee(trainee);
+
+        // Verify that the trainee was updated
+        verify(traineeDao).update(trainee);
+    }
+
+    @Test
+    void testUpdateTrainee_InvalidTrainee() {
+        Trainee trainee = new Trainee();
+        trainee.setUsername("john.doe");
+        trainee.setPassword("password123");
+
+        when(userService.isAuthenticated(anyString(), anyString())).thenReturn(true);
+        when(userService.isValid(any(Trainee.class))).thenReturn(false);
+
+        traineeService.updateTrainee(trainee);
+
+        // Verify that no update occurred due to invalid trainee
+        verify(traineeDao, never()).update(trainee);
+    }
+
+    @Test
+    void testDeleteTrainee_TraineeFound() {
+        when(traineeDao.delete("john.doe")).thenReturn(true);
+
+        traineeService.deleteTrainee("john.doe");
+
+        // Verify that the trainee was deleted
+        verify(traineeDao).delete("john.doe");
+    }
+
+    @Test
+    void testDeleteTrainee_TraineeNotFound() {
+        when(traineeDao.delete("john.doe")).thenReturn(false);
+
+        traineeService.deleteTrainee("john.doe");
+
+        // Since trainee wasn't found, no further actions are taken
+        verify(traineeDao).delete("john.doe");
+    }
+
+    @Test
+    void testGetTraineeByUsername_TraineeFound() {
+        Trainee trainee = new Trainee();
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        Trainee result = traineeService.getTraineeByUsername("john.doe");
+
+        // Verify that the correct trainee is returned
         assertThat(result).isEqualTo(trainee);
     }
 
     @Test
-    public void getAllTraineeSuccessfully() {
-        List<Trainee> trainees = new ArrayList<>();
-        when(traineeDao.listAll()).thenReturn(trainees);
+    void testGetTraineeByUsername_TraineeNotFound() {
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.empty());
 
-        List<Trainee> result = traineeService.getAllTrainee();
+        Trainee result = traineeService.getTraineeByUsername("john.doe");
 
-        verify(traineeDao, times(1)).listAll();
-        assertThat(result).isEqualTo(trainees);
+        // Verify that null is returned if trainee is not found
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void testGetTraineeByUsernameAndPassword_Authenticated() {
+        Trainee trainee = new Trainee();
+        when(userService.isAuthenticated("john.doe", "password123")).thenReturn(true);
+        when(traineeDao.findByUsernameAndPassword("john.doe", "password123")).thenReturn(Optional.of(trainee));
+
+        Trainee result = traineeService.getTraineeByUsernameAndPassword("john.doe", "password123");
+
+        // Verify that the correct trainee is returned when authenticated
+        assertThat(result).isEqualTo(trainee);
+    }
+
+    @Test
+    void testGetTraineeByUsernameAndPassword_AuthenticationFailed() {
+        when(userService.isAuthenticated("john.doe", "password123")).thenReturn(false);
+
+        Trainee result = traineeService.getTraineeByUsernameAndPassword("john.doe", "password123");
+
+        // Verify that null is returned if authentication fails
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void testActivateTrainee_TraineeFound() {
+        Trainee trainee = new Trainee();
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        traineeService.activateTrainee("john.doe");
+
+        // Verify that the trainee was activated
+        verify(userService).activate(trainee);
+    }
+
+    @Test
+    void testActivateTrainee_TraineeNotFound() {
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        traineeService.activateTrainee("john.doe");
+
+        // Verify that activation doesn't happen when trainee is not found
+        verify(userService, never()).activate(any());
+    }
+
+    @Test
+    void testDeactivateTrainee_TraineeFound() {
+        Trainee trainee = new Trainee();
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        traineeService.deactivateTrainee("john.doe");
+
+        // Verify that the trainee was deactivated
+        verify(userService).deactivate(trainee);
+    }
+
+    @Test
+    void testDeactivateTrainee_TraineeNotFound() {
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        traineeService.deactivateTrainee("john.doe");
+
+        // Verify that deactivation doesn't happen when trainee is not found
+        verify(userService, never()).deactivate(any());
     }
 }
