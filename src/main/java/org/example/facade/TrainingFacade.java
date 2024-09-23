@@ -1,6 +1,19 @@
 package org.example.facade;
 
 
+import org.example.dto.requests.trainee.*;
+import org.example.dto.requests.trainer.CreateTrainerRequestDto;
+import org.example.dto.requests.trainer.GetTrainerByUsernameRequestDto;
+import org.example.dto.requests.trainer.GetTrainerTrainingListRequestDto;
+import org.example.dto.requests.training.CreateTrainingRequestDto;
+import org.example.dto.requests.user.ActivateUserRequestDto;
+import org.example.dto.requests.user.ChangePasswordRequestDto;
+import org.example.dto.requests.user.DeactivateUserRequestDto;
+import org.example.dto.requests.user.LoginRequestDto;
+import org.example.dto.responses.trainee.*;
+import org.example.dto.responses.trainer.CreateTrainerResponseDto;
+import org.example.dto.responses.trainer.GetTrainerByUsernameResponseDto;
+import org.example.dto.responses.trainer.GetTrainerTrainingListResponseDto;
 import org.example.models.Trainee;
 import org.example.models.Trainer;
 import org.example.models.Training;
@@ -13,8 +26,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 public class TrainingFacade {
@@ -32,60 +43,47 @@ public class TrainingFacade {
     public List<Trainer> getAllTrainers(){
         return trainerService.getAllTrainers();
     }
-    public void createTrainer(Trainer trainer){
-        trainerService.createTrainer(trainer);
+    public CreateTrainerResponseDto createTrainer(CreateTrainerRequestDto createTrainerRequestDto){
+        return trainerService.createTrainer(createTrainerRequestDto);
+    }
+    public void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto){
+         traineeService.deleteTrainee(deleteTraineeRequestDto);
+     }
+    public CreateTraineeResponseDto addTrainee(CreateTraineeRequestDto createTraineeRequestDto){
+        return traineeService.createTrainee(createTraineeRequestDto);
+    }
+    public GetTraineeByUsernameResponseDto getByUsernameTrainee(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto){
+        return traineeService.getTraineeByUsername(getTraineeByUsernameRequestDto);
+    }
+    public void getByUsernameAndPassword(LoginRequestDto loginRequestDto){
+        traineeService.getTraineeByUsernameAndPassword(loginRequestDto);
+    }
+    public UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto){
+        return traineeService.updateTrainee(updateTraineeRequestDto);
+    }
+    public void updatePasswordForTrainee(ChangePasswordRequestDto changePasswordRequestDto){
+        traineeService.changePassword(changePasswordRequestDto);
+    }
+    public void activateTrainee(ActivateUserRequestDto activateUserRequestDto){
+        traineeService.activateTrainee(activateUserRequestDto);
+    }
+    public void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto){
+        traineeService.deactivateTrainee(deactivateUserRequestDto);
     }
 
-    public List<Training> getAllTrainings(){
-        return trainingService.getAllTrainings();
+    public void createTraining(CreateTrainingRequestDto createTrainingRequestDto){
+        trainingService.createTraining(createTrainingRequestDto);
     }
-   /* public void deleteTrainee(Long id){
-        traineeService.deleteTrainee(id);
-    }*/
-    public List<Trainee> getAllTrainees(){
-        return traineeService.getAllTrainee();
+    public GetTrainerByUsernameResponseDto getByUsernameTrainer(GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto){
+        return trainerService.getTrainerByUsername(getTrainerByUsernameRequestDto);
     }
-    public void addTrainee(Trainee trainee){
-        traineeService.createTrainee(trainee);
+    public GetTraineeTrainingListResponseDto getTrainingTraineeListByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto){
+        return traineeService.getTrainingByCriteria(getTraineeTrainingListRequestDto);
     }
-    public Trainee getByUsernameTrainee(String username){
-        return traineeService.getTraineeByUsername(username);
+    public GetTrainerTrainingListResponseDto getTrainingTrainerListByCriteria(GetTrainerTrainingListRequestDto getTrainerTrainingListRequestDto){
+        return trainerService.getTrainingByCriteria(getTrainerTrainingListRequestDto);
     }
-    public Trainee getByUsernameAndPassword(String username, String password){
-        return traineeService.getTraineeByUsernameAndPassword(username, password);
-    }
-    public void updateTrainee(Trainee trainee){
-        traineeService.updateTrainee(trainee);
-    }
-    public void updatePasswordForTrainee(Trainee trainee, String password){
-        traineeService.changePassword(trainee, password);
-    }
-    public void activateTrainee(String username){
-        traineeService.activateTrainee(username);
-    }
-    public void deactivateTrainee(String username){
-        traineeService.deactivateTrainee(username);
-    }
-
-    public void createTraining(Training training){
-        trainingService.createTraining(training);
-    }
-    public Trainer getByUsernameTrainer(String username){
-        return trainerService.getTrainerByUsername(username);
-    }
-    public List<Training> getTrainingTraineeListByCriteria(String username, Date startDate, Date endDate, String trainerName, TrainingTypeEntity trainingType){
-        return traineeService.getTrainingByCriteria(username, startDate, endDate, trainerName, trainingType);
-    }
-    public TrainingTypeEntity getTrainingType(String trainingType){
-        return trainingService.getTrainingType(trainingType);
-    }
-    public List<Training> getTrainingTrainerListByCriteria(String username, Date startDate, Date endDate, String traineeName){
-        return trainerService.getTrainingByCriteria(username, startDate, endDate, traineeName);
-    }
-    public List<Trainer> getTrainerNotAssignedTrainee(String username){
-        return traineeService.getTrainersNotAssignedToTrainee(username);
-    }
-    public void deleteTrainee(String username){
-        traineeService.deleteTrainee(username);
+    public GetNotAssignedTrainersResponseDto getTrainersNotAssignedTrainee(GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto){
+        return traineeService.getTrainersNotAssignedToTrainee(getNotAssignedTrainersRequestDto);
     }
 }

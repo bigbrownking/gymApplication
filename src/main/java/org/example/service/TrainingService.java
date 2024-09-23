@@ -1,14 +1,14 @@
 package org.example.service;
 
+import org.example.dto.requests.training.CreateTrainingRequestDto;
+import org.example.dto.responses.training.GetTrainingTypesResponseDto;
 import org.example.models.Training;
 import org.example.models.TrainingTypeEntity;
 
 import java.util.List;
 
 public interface TrainingService {
-    void createTraining(Training training);
-    public Training getTraining(Long trainingId);
+    void createTraining(CreateTrainingRequestDto createTrainingRequestDto);
     List<Training> getAllTrainings();
-    void updateTraining(Training training);
-    TrainingTypeEntity getTrainingType(String trainingType);
+    GetTrainingTypesResponseDto getTrainingTypes();
 }

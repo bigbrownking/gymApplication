@@ -2,6 +2,7 @@ package org.example.dao.impl;
 
 import jakarta.persistence.TypedQuery;
 import org.example.dao.TrainerDao;
+import org.example.models.Trainee;
 import org.example.models.Trainer;
 import org.example.models.Training;
 import org.example.models.TrainingTypeEntity;
@@ -190,4 +191,28 @@ public class TrainerDaoImpl implements TrainerDao {
         }
         return true;
     }
+
+    @Override
+    public List<Trainee> allTraineesOfTrainer(String username) {
+        Session session = sessionFactory.getCurrentSession();
+        Transaction transaction = null;
+        List<Trainee> trainees;
+        try {
+            transaction = session.beginTransaction();
+            trainees = session.createQuery(
+                            "SELECT t FROM Trainee t JOIN t.trainings tr WHERE tr.trainer.username = :username", Trainee.class)
+                    .setParameter("username", username)
+                    .getResultList();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw e;
+        } finally {
+            session.close();
+        }
+        return trainees;
+    }
+
 }

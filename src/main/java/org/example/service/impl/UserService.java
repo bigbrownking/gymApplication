@@ -19,10 +19,7 @@ import java.util.stream.Stream;
 @Service
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
-
-
     private TraineeDao traineeDao;
-
     private TrainerDao trainerDao;
 
     @Autowired

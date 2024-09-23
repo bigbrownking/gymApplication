@@ -11,5 +11,6 @@ public interface TrainingDao {
     List<Training> listAll();
     void updateTraining(Training training);
     TrainingTypeEntity getTrainingType(String trainingType);
+    List<TrainingTypeEntity> getTrainingTypes();
 
 }

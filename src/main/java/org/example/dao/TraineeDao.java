@@ -18,4 +18,5 @@ public interface TraineeDao {
     Optional<Trainee> findByUsernameAndPassword(String username, String password);
     List<Training> getTrainingByCriteria(String username, Date startDate, Date endDate,  String trainerName, TrainingTypeEntity trainingType);
     List<Trainer> getTrainersNotAssignedToTrainee(String username);
+    List<Trainer> getTrainersAssignedToTrainee(String username);
 }

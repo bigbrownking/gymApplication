@@ -1,5 +1,12 @@
 package org.example.service;
 
+import org.example.dto.requests.trainee.*;
+import org.example.dto.requests.trainer.CreateTrainerRequestDto;
+import org.example.dto.requests.user.ActivateUserRequestDto;
+import org.example.dto.requests.user.ChangePasswordRequestDto;
+import org.example.dto.requests.user.DeactivateUserRequestDto;
+import org.example.dto.requests.user.LoginRequestDto;
+import org.example.dto.responses.trainee.*;
 import org.example.models.Trainee;
 import org.example.models.Trainer;
 import org.example.models.Training;
@@ -9,21 +16,21 @@ import java.util.Date;
 import java.util.List;
 
 public interface TraineeService {
-    void createTrainee(Trainee trainee);
+    CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto);
 
-    void updateTrainee(Trainee trainee);
+    UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto);
 
-    void deleteTrainee(String username);
+    void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto);
 
-    Trainee getTraineeByUsername(String username);
-    Trainee getTraineeByUsernameAndPassword(String username, String password);
+    GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto);
+    void getTraineeByUsernameAndPassword(LoginRequestDto loginRequestDto);
     List<Trainee> getAllTrainee();
-    void changePassword(Trainee trainee, String password);
+    void changePassword(ChangePasswordRequestDto changePasswordRequestDto);
 
-    void activateTrainee(String username);
+    void activateTrainee(ActivateUserRequestDto activateUserRequestDto);
 
-    void deactivateTrainee(String username);
-    List<Training> getTrainingByCriteria(String username, Date startDate, Date endDate, String trainerName, TrainingTypeEntity trainingType);
+    void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto);
+    GetTraineeTrainingListResponseDto getTrainingByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto);
 
-    List<Trainer> getTrainersNotAssignedToTrainee(String username);
+    GetNotAssignedTrainersResponseDto getTrainersNotAssignedToTrainee(GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto);
 }

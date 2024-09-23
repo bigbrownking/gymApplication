@@ -23,7 +23,7 @@ public class Trainer extends User{
     @JoinColumn(name = "specialization_id")
     private TrainingTypeEntity specialization;
 
-    @OneToMany(mappedBy = "trainer")
+    @OneToMany(mappedBy = "trainer", fetch = FetchType.EAGER)
     private List<Training> trainings;
 
     public Trainer(String firstName,
