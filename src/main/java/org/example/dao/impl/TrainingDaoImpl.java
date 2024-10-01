@@ -15,9 +15,9 @@ import java.util.*;
 
 @Repository
 public class TrainingDaoImpl implements TrainingDao {
-   private final SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-   @Autowired
+    @Autowired
     public TrainingDaoImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
@@ -27,7 +27,7 @@ public class TrainingDaoImpl implements TrainingDao {
     public void create(Training training) {
         Session session = sessionFactory.getCurrentSession();
         Transaction transaction = null;
-        try{
+        try {
             transaction = session.beginTransaction();
             TrainingTypeEntity trainingType = training.getTrainingType();
             TrainingTypeEntity existingTrainingType = session
@@ -42,8 +42,8 @@ public class TrainingDaoImpl implements TrainingDao {
             }
             session.persist(training);
             transaction.commit();
-        } catch (Exception e){
-            if(transaction != null){
+        } catch (Exception e) {
+            if (transaction != null) {
                 transaction.rollback();
             }
             e.printStackTrace();
@@ -56,12 +56,12 @@ public class TrainingDaoImpl implements TrainingDao {
     public void updateTraining(Training training) {
         Session session = sessionFactory.getCurrentSession();
         Transaction transaction = null;
-        try{
+        try {
             transaction = session.beginTransaction();
             session.merge(training);
             transaction.commit();
-        } catch (Exception e){
-            if(transaction != null){
+        } catch (Exception e) {
+            if (transaction != null) {
                 transaction.rollback();
             }
             e.printStackTrace();
@@ -105,15 +105,35 @@ public class TrainingDaoImpl implements TrainingDao {
             trainingTypeEntity = session.createQuery("FROM TrainingTypeEntity WHERE trainingTypeName =: trainingType", TrainingTypeEntity.class)
                     .setParameter("trainingType", trainingType)
                     .uniqueResult();
-        }
-            catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
-            } finally {
-                session.close();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
             }
-            return trainingTypeEntity;
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return trainingTypeEntity;
+    }
+
+    @Override
+    public List<TrainingTypeEntity> getTrainingTypes() {
+        Session session = sessionFactory.getCurrentSession();
+        Transaction transaction = null;
+        List<TrainingTypeEntity> trainingTypeEntities = null;
+        try {
+            transaction = session.beginTransaction();
+            trainingTypeEntities = session.createQuery("FROM TrainingTypeEntity", TrainingTypeEntity.class).getResultList();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+        } finally {
+            session.close();
+
+        }
+
+        return trainingTypeEntities;
     }
 }

@@ -60,8 +60,8 @@ public class Main {
 
 
         //activate/deactivate
-        Trainee trainee = facade.getByUsernameTrainee("emily.davis");
-        facade.deactivateTrainee(trainee.getUsername());
+      /*  Trainee trainee = facade.getByUsernameTrainee("emily.davis");
+        facade.deactivateTrainee(trainee.getUsername());*/
         //facade.activateTrainee(trainee.getUsername());
 
 
@@ -119,5 +119,8 @@ public class Main {
 
        facade.deleteTrainee(trainee);
 */
+
+       // System.out.println(facade.getTrainerTrainee("john.doe"));
+        //System.out.println(facade.getTrainingsFromTrainer("alice.green"));
     }
 }

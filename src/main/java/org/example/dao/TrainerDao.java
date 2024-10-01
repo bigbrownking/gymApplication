@@ -1,5 +1,6 @@
 package org.example.dao;
 
+import org.example.models.Trainee;
 import org.example.models.Trainer;
 import org.example.models.Training;
 import org.example.models.TrainingTypeEntity;
@@ -16,4 +17,5 @@ public interface TrainerDao {
     Optional<Trainer> findByUsernameAndPassword(String username, String password);
     List<Training> getTrainingByCriteria(String username, Date startDate, Date endDate, String traineeName);
     boolean isSpecializationValid(TrainingTypeEntity trainingTypeEntity);
+    List<Trainee> allTraineesOfTrainer(String username);
 }

@@ -41,7 +41,6 @@ public class TraineeDaoImpl implements TraineeDao {
         } finally {
             session.close();
         }
-
     }
 
     @Override
@@ -246,4 +245,27 @@ public class TraineeDaoImpl implements TraineeDao {
         return trainersNotAssigned;
     }
 
+    @Override
+    public List<Trainer> getTrainersAssignedToTrainee(String username) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = null;
+        List<Trainer> assignedTrainers = null;
+        try {
+            transaction = session.beginTransaction();
+            String hql = "SELECT DISTINCT t.trainer FROM Training t " +
+                    "JOIN t.trainee trainee WHERE trainee.username = :username";
+            Query<Trainer> query = session.createQuery(hql, Trainer.class);
+            query.setParameter("username", username);
+            assignedTrainers = query.getResultList();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw e;
+        } finally {
+            session.close();
+        }
+        return assignedTrainers;
+    }
 }
