@@ -1,5 +1,6 @@
 package org.example.service.impl;
 
+import lombok.extern.java.Log;
 import org.example.dao.TraineeDao;
 import org.example.dto.TrainerDto;
 import org.example.dto.TrainingDto;
@@ -49,10 +50,10 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto) {
+    public CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto) throws Exception {
         LOGGER.debug("Creating new trainee...");
         if (createTraineeRequestDto == null) {
-            LOGGER.warn("Invalid trainee...");
+            LOGGER.warn("Invalid request...");
             return null;
         }
         List<String> existingUsernames = userService.getAllExistingUsernames();
@@ -64,16 +65,15 @@ public class TraineeServiceImpl implements TraineeService {
         trainee.setUsername(username);
         trainee.setPassword(password);
         trainee.setActive(true);
-
         traineeDao.create(trainee);
         return traineeMapper.toCreateTraineeDto(trainee);
     }
 
     @Override
-    public UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto) {
+    public UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto) throws Exception {
         LOGGER.debug("Updating trainee...");
         if (updateTraineeRequestDto == null) {
-            LOGGER.warn("Invalid trainee...");
+            LOGGER.warn("Invalid request...");
             return null;
         }
         if (traineeDao.findByUsername(updateTraineeRequestDto.getUsername()).isEmpty()) {
@@ -81,6 +81,10 @@ public class TraineeServiceImpl implements TraineeService {
             return null;
         }
         Trainee trainee = traineeMapper.toTrainee(updateTraineeRequestDto);
+        if(!userService.isValid(trainee)) {
+            LOGGER.warn("For some reasons trainee is not valid...");
+            return null;
+        }
         traineeDao.update(trainee);
         List<TrainerDto> trainers = trainerMapper.convertTrainersToDto(
                 traineeDao.getTrainersAssignedToTrainee(
@@ -89,56 +93,74 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto) {
+    public void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto) throws Exception {
         LOGGER.debug("Deleting trainee...");
+        if(deleteTraineeRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         boolean isDeleted = traineeDao.delete(deleteTraineeRequestDto.getUsername());
         if (!isDeleted) {
-            LOGGER.warn("Trainee wasn't found...");
+            LOGGER.warn("There is no such trainee found...");
         }
     }
 
     @Override
-    public GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) {
+    public GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) throws Exception {
         LOGGER.debug("Retrieving a trainee by username...");
+        if(getTraineeByUsernameRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return null;
+        }
         Trainee trainee = traineeDao.findByUsername(getTraineeByUsernameRequestDto.getUsername()).orElse(null);
-
+        if(trainee == null){
+            LOGGER.warn("There is no such trainee found...");
+            return null;
+        }
         List<TrainerDto> trainers = trainerMapper.convertTrainersToDto(
                 traineeDao.getTrainersAssignedToTrainee(
                         getTraineeByUsernameRequestDto.getUsername()));
         return traineeMapper.toGetTraineeByUsernameDto(trainee, trainers);
     }
-
     @Override
-    public List<Trainee> getAllTrainee() {
-        LOGGER.debug("Retrieving all trainees...");
-        return traineeDao.listAll();
-    }
-
-    @Override
-    public void getTraineeByUsernameAndPassword(LoginRequestDto loginRequestDto) {
+    public void getTraineeByUsernameAndPassword(LoginRequestDto loginRequestDto) throws Exception {
         LOGGER.debug("Authenticating trainee...");
+        if(loginRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         if (!userService.isAuthenticated(loginRequestDto.getUsername(), loginRequestDto.getPassword())) {
             LOGGER.warn("Authentication failed...");
         }
     }
 
     @Override
-    public void changePassword(ChangePasswordRequestDto changePasswordRequestDto) {
+    public void changePassword(ChangePasswordRequestDto changePasswordRequestDto) throws Exception {
         LOGGER.debug("Changing password for trainee...");
+        if(changePasswordRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         if (!userService.isAuthenticated(changePasswordRequestDto.getUsername(), changePasswordRequestDto.getOldPassword())) {
             LOGGER.warn("Authentication failed...");
             return;
         }
         Trainee trainee = traineeDao.findByUsername(changePasswordRequestDto.getUsername()).orElse(null);
-        if(trainee != null){
-            trainee.setPassword(changePasswordRequestDto.getPassword());
-            traineeDao.update(trainee);
+        if(trainee == null){
+            LOGGER.warn("There is no such trainee found...");
+            return;
         }
+        trainee.setPassword(changePasswordRequestDto.getPassword());
+        traineeDao.update(trainee);
     }
 
     @Override
-    public void activateTrainee(ActivateUserRequestDto activateUserRequestDto) {
+    public void activateTrainee(ActivateUserRequestDto activateUserRequestDto) throws Exception {
         LOGGER.debug("Activating trainee...");
+        if(activateUserRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         Trainee trainee = traineeDao.findByUsername(activateUserRequestDto.getUsername()).orElse(null);
         if (trainee == null) {
             LOGGER.warn("There is no such trainee found...");
@@ -148,8 +170,12 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto) {
+    public void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto) throws Exception {
         LOGGER.debug("Deactivating trainee...");
+        if(deactivateUserRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         Trainee trainee = traineeDao.findByUsername(deactivateUserRequestDto.getUsername()).orElse(null);
         if (trainee == null) {
             LOGGER.warn("There is no such trainee found...");
@@ -159,8 +185,12 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public GetTraineeTrainingListResponseDto getTrainingByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto) {
+    public GetTraineeTrainingListResponseDto getTrainingByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto) throws Exception {
         LOGGER.debug("Getting training list by criteria...");
+        if(getTraineeTrainingListRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return null;
+        }
         List<Training> trainings = traineeDao.getTrainingByCriteria(
                 getTraineeTrainingListRequestDto.getUsername(),
                 getTraineeTrainingListRequestDto.getFromDate(),
@@ -177,8 +207,17 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public GetNotAssignedTrainersResponseDto getTrainersNotAssignedToTrainee(GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto) {
         LOGGER.debug("Getting trainers not assigned to trainee...");
-        List<Trainer> trainers = traineeDao.getTrainersNotAssignedToTrainee(getNotAssignedTrainersRequestDto.getUsername());
-        return traineeMapper.toGetNotAssignedTrainersDto(trainerMapper.convertTrainersToDto(trainers));
+        if(getNotAssignedTrainersRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return null;
+        }
+        try {
+            List<Trainer> trainers = traineeDao.getTrainersNotAssignedToTrainee(getNotAssignedTrainersRequestDto.getUsername());
+            return traineeMapper.toGetNotAssignedTrainersDto(trainerMapper.convertTrainersToDto(trainers));
+        }catch (Exception e){
+            LOGGER.warn("There is no such trainee found...");
+            return null;
+        }
     }
 
 }

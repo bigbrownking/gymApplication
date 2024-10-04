@@ -32,24 +32,24 @@ public class UserService {
         this.trainerDao = trainerDao;
     }
 
-    private List<String> trainerUsernames() {
+    private List<String> trainerUsernames() throws Exception {
         return trainerDao.listAll().stream()
                 .map(Trainer::getUsername)
                 .toList();
     }
 
-    private List<String> traineeUsernames() {
+    private List<String> traineeUsernames() throws Exception {
         return traineeDao.listAll().stream()
                 .map(Trainee::getUsername)
                 .toList();
     }
 
-    public List<String> getAllExistingUsernames() {
+    public List<String> getAllExistingUsernames() throws Exception {
         return Stream.concat(trainerUsernames().stream(), traineeUsernames().stream())
                 .collect(Collectors.toList());
     }
 
-    public boolean isAuthenticated(String username, String password) {
+    public boolean isAuthenticated(String username, String password) throws Exception {
         return traineeDao.findByUsernameAndPassword(username, password).isPresent()
                 || trainerDao.findByUsernameAndPassword(username, password).isPresent();
     }

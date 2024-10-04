@@ -16,21 +16,20 @@ import java.util.Date;
 import java.util.List;
 
 public interface TraineeService {
-    CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto);
+    CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto) throws Exception;
 
-    UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto);
+    UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto) throws Exception;
 
-    void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto);
+    void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto) throws Exception;
 
-    GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto);
-    void getTraineeByUsernameAndPassword(LoginRequestDto loginRequestDto);
-    List<Trainee> getAllTrainee();
-    void changePassword(ChangePasswordRequestDto changePasswordRequestDto);
+    GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) throws Exception;
+    void getTraineeByUsernameAndPassword(LoginRequestDto loginRequestDto) throws Exception;
+    void changePassword(ChangePasswordRequestDto changePasswordRequestDto) throws Exception;
 
-    void activateTrainee(ActivateUserRequestDto activateUserRequestDto);
+    void activateTrainee(ActivateUserRequestDto activateUserRequestDto) throws Exception;
 
-    void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto);
-    GetTraineeTrainingListResponseDto getTrainingByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto);
+    void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto) throws Exception;
+    GetTraineeTrainingListResponseDto getTrainingByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto) throws Exception;
 
-    GetNotAssignedTrainersResponseDto getTrainersNotAssignedToTrainee(GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto);
+    GetNotAssignedTrainersResponseDto getTrainersNotAssignedToTrainee(GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto) throws Exception;
 }

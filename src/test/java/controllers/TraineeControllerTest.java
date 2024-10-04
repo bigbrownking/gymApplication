@@ -25,7 +25,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testRegisterTrainee_Success() {
+    public void testRegisterTrainee_Success() throws Exception {
         CreateTraineeRequestDto requestDto = new CreateTraineeRequestDto();
         CreateTraineeResponseDto responseDto = new CreateTraineeResponseDto();
 
@@ -39,7 +39,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testLogin_Success() {
+    public void testLogin_Success() throws Exception {
         LoginRequestDto loginRequestDto = new LoginRequestDto();
 
         doNothing().when(traineeService).getTraineeByUsernameAndPassword(loginRequestDto);
@@ -51,7 +51,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testUpdateTrainee_Success() {
+    public void testUpdateTrainee_Success() throws Exception {
         UpdateTraineeRequestDto requestDto = new UpdateTraineeRequestDto();
         UpdateTraineeResponseDto responseDto = new UpdateTraineeResponseDto();
 
@@ -65,7 +65,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testUpdateTrainee_NotFound() {
+    public void testUpdateTrainee_NotFound() throws Exception {
         UpdateTraineeRequestDto requestDto = new UpdateTraineeRequestDto();
 
         when(traineeService.updateTrainee(requestDto)).thenReturn(null);
@@ -77,7 +77,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testDeleteTrainee_Success() {
+    public void testDeleteTrainee_Success() throws Exception {
         DeleteTraineeRequestDto requestDto = new DeleteTraineeRequestDto();
 
         doNothing().when(traineeService).deleteTrainee(requestDto);
@@ -89,7 +89,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testGetTraineeByUsername_Success() {
+    public void testGetTraineeByUsername_Success() throws Exception {
         GetTraineeByUsernameRequestDto requestDto = new GetTraineeByUsernameRequestDto();
         GetTraineeByUsernameResponseDto responseDto = new GetTraineeByUsernameResponseDto();
 
@@ -103,7 +103,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testGetTraineeByUsername_NotFound() {
+    public void testGetTraineeByUsername_NotFound() throws Exception {
         GetTraineeByUsernameRequestDto requestDto = new GetTraineeByUsernameRequestDto();
 
         when(traineeService.getTraineeByUsername(requestDto)).thenReturn(null);
@@ -115,7 +115,7 @@ public class TraineeControllerTest {
     }
 
     @Test
-    public void testChangePassword_Success() {
+    public void testChangePassword_Success() throws Exception {
         ChangePasswordRequestDto requestDto = new ChangePasswordRequestDto();
 
         doNothing().when(traineeService).changePassword(requestDto);

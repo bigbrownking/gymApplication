@@ -33,7 +33,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void registerTrainer_shouldReturnCreatedResponse() {
+    void registerTrainer_shouldReturnCreatedResponse() throws Exception {
         CreateTrainerRequestDto requestDto = new CreateTrainerRequestDto();
         CreateTrainerResponseDto responseDto = new CreateTrainerResponseDto();
 
@@ -46,7 +46,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void registerTrainer_shouldReturnInternalServerError() {
+    void registerTrainer_shouldReturnInternalServerError() throws Exception {
         CreateTrainerRequestDto requestDto = new CreateTrainerRequestDto();
 
         when(trainerService.createTrainer(requestDto)).thenThrow(new RuntimeException());
@@ -57,7 +57,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void login_shouldReturnOkResponse() {
+    void login_shouldReturnOkResponse() throws Exception {
         LoginRequestDto requestDto = new LoginRequestDto();
 
         doNothing().when(trainerService).getTrainerByUsernameAndPassword(requestDto);
@@ -68,7 +68,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void login_shouldReturnUnauthorizedResponse() {
+    void login_shouldReturnUnauthorizedResponse() throws Exception {
         LoginRequestDto requestDto = new LoginRequestDto();
 
         doThrow(new RuntimeException()).when(trainerService).getTrainerByUsernameAndPassword(requestDto);
@@ -79,7 +79,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void getTrainerByUsername_shouldReturnOkResponse() {
+    void getTrainerByUsername_shouldReturnOkResponse() throws Exception {
         GetTrainerByUsernameRequestDto requestDto = new GetTrainerByUsernameRequestDto();
         GetTrainerByUsernameResponseDto responseDto = new GetTrainerByUsernameResponseDto();
 
@@ -92,7 +92,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void getTrainerByUsername_shouldReturnNotFoundResponse() {
+    void getTrainerByUsername_shouldReturnNotFoundResponse() throws Exception {
         GetTrainerByUsernameRequestDto requestDto = new GetTrainerByUsernameRequestDto();
 
         when(trainerService.getTrainerByUsername(requestDto)).thenReturn(null);
@@ -103,7 +103,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void getTrainings_shouldReturnOkResponse() {
+    void getTrainings_shouldReturnOkResponse() throws Exception {
         GetTrainerTrainingListRequestDto requestDto = new GetTrainerTrainingListRequestDto();
         GetTrainerTrainingListResponseDto responseDto = new GetTrainerTrainingListResponseDto();
 
@@ -116,7 +116,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void updateTrainer_shouldReturnOkResponse() {
+    void updateTrainer_shouldReturnOkResponse() throws Exception {
         UpdateTrainerRequestDto requestDto = new UpdateTrainerRequestDto();
         UpdateTrainerResponseDto responseDto = new UpdateTrainerResponseDto();
 
@@ -129,7 +129,7 @@ class TrainerControllerTest {
     }
 
     @Test
-    void updateTrainer_shouldReturnNotFoundResponse() {
+    void updateTrainer_shouldReturnNotFoundResponse() throws Exception {
         UpdateTrainerRequestDto requestDto = new UpdateTrainerRequestDto();
 
         when(trainerService.updateTrainer(requestDto)).thenReturn(null);

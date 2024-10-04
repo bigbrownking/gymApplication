@@ -1,6 +1,7 @@
 package org.example.service.impl;
 
 import org.example.dao.TrainerDao;
+import org.example.dao.TrainingDao;
 import org.example.dto.TraineeDto;
 import org.example.dto.requests.trainer.CreateTrainerRequestDto;
 import org.example.dto.requests.trainer.GetTrainerByUsernameRequestDto;
@@ -38,25 +39,32 @@ public class TrainerServiceImpl implements TrainerService {
     private TrainerMapper trainerMapper;
     private TraineeMapper traineeMapper;
     private TrainingMapper trainingMapper;
+    private TrainingDao trainingDao;
 
     @Autowired
     public TrainerServiceImpl(TrainerDao trainerDao,
                               UserService userService,
                               TrainerMapper trainerMapper,
                               TraineeMapper traineeMapper,
-                              TrainingMapper trainingMapper) {
+                              TrainingMapper trainingMapper,
+                              TrainingDao trainingDao) {
         this.trainerDao = trainerDao;
         this.userService = userService;
         this.trainerMapper = trainerMapper;
         this.traineeMapper = traineeMapper;
         this.trainingMapper = trainingMapper;
+        this.trainingDao = trainingDao;
     }
 
     @Override
-    public CreateTrainerResponseDto createTrainer(CreateTrainerRequestDto createTrainerRequestDto) {
+    public CreateTrainerResponseDto createTrainer(CreateTrainerRequestDto createTrainerRequestDto) throws Exception {
         LOGGER.debug("Creating new trainer...");
         if (createTrainerRequestDto == null) {
-            LOGGER.warn("Invalid trainer...");
+            LOGGER.warn("Invalid request...");
+            return null;
+        }
+        if(!trainingDao.getTrainingTypes().contains(createTrainerRequestDto.getSpecialization())){
+            LOGGER.warn("There is no such training type...");
             return null;
         }
         List<String> existingUsernames = userService.getAllExistingUsernames();
@@ -69,16 +77,16 @@ public class TrainerServiceImpl implements TrainerService {
         trainer.setUsername(username);
         trainer.setPassword(password);
         trainer.setActive(true);
-
+        trainer.setSpecialization(createTrainerRequestDto.getSpecialization());
         trainerDao.create(trainer);
         return trainerMapper.toCreateTrainerDto(trainer);
     }
 
     @Override
-    public UpdateTrainerResponseDto updateTrainer(UpdateTrainerRequestDto updateTrainerRequestDto) {
+    public UpdateTrainerResponseDto updateTrainer(UpdateTrainerRequestDto updateTrainerRequestDto) throws Exception {
         LOGGER.debug("Updating trainer...");
         if (updateTrainerRequestDto == null) {
-            LOGGER.warn("Invalid trainer...");
+            LOGGER.warn("Invalid request...");
             return null;
         }
         if (trainerDao.findByUsername(updateTrainerRequestDto.getUsername()).isEmpty()) {
@@ -86,6 +94,10 @@ public class TrainerServiceImpl implements TrainerService {
             return null;
         }
         Trainer trainer = trainerMapper.toTrainer(updateTrainerRequestDto);
+        if(!userService.isValid(trainer)) {
+            LOGGER.warn("For some reasons trainer is not valid...");
+            return null;
+        }
         trainerDao.update(trainer);
         List<TraineeDto> trainees = traineeMapper.convertTraineesToDto(
                 trainerDao.allTraineesOfTrainer(
@@ -94,26 +106,29 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public GetTrainerByUsernameResponseDto getTrainerByUsername(GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto) {
+    public GetTrainerByUsernameResponseDto getTrainerByUsername(GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto) throws Exception {
         LOGGER.debug("Retrieving a trainer by username...");
+        if(getTrainerByUsernameRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return null;
+        }
         Trainer trainer = trainerDao.findByUsername(getTrainerByUsernameRequestDto.getUsername()).orElse(null);
-
+        if(trainer == null){
+            LOGGER.warn("There is no such trainer found...");
+            return null;
+        }
         List<TraineeDto> trainees = traineeMapper.convertTraineesToDto(
                 trainerDao.allTraineesOfTrainer(
                         getTrainerByUsernameRequestDto.getUsername()));
-
         return trainerMapper.toGetTrainerByUsernameDto(trainer, trainees);
     }
-
     @Override
-    public List<Trainer> getAllTrainers() {
-        LOGGER.debug("Retrieving all trainers...");
-        return trainerDao.listAll();
-    }
-
-    @Override
-    public void getTrainerByUsernameAndPassword(LoginRequestDto loginRequestDto) {
+    public void getTrainerByUsernameAndPassword(LoginRequestDto loginRequestDto) throws Exception {
         LOGGER.debug("Authenticating trainer...");
+        if(loginRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         if (!userService.isAuthenticated(loginRequestDto.getUsername(), loginRequestDto.getPassword())) {
             LOGGER.warn("Authentication failed...");
         }
@@ -121,23 +136,32 @@ public class TrainerServiceImpl implements TrainerService {
 
 
     @Override
-    public void changePassword(ChangePasswordRequestDto changePasswordRequestDto) {
+    public void changePassword(ChangePasswordRequestDto changePasswordRequestDto) throws Exception {
         LOGGER.debug("Changing password for trainee...");
+        if(changePasswordRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         if (!userService.isAuthenticated(changePasswordRequestDto.getUsername(), changePasswordRequestDto.getOldPassword())) {
             LOGGER.warn("Authentication failed...");
             return;
         }
         Trainer trainer = trainerDao.findByUsername(changePasswordRequestDto.getUsername()).orElse(null);
-        if(trainer != null){
-            trainer.setPassword(changePasswordRequestDto.getPassword());
-            trainerDao.update(trainer);
+        if(trainer == null){
+            LOGGER.warn("There is no such trainer found...");
+            return;
         }
-
+        trainer.setPassword(changePasswordRequestDto.getPassword());
+        trainerDao.update(trainer);
     }
 
     @Override
-    public void activateTrainer(ActivateUserRequestDto activateUserRequestDto) {
+    public void activateTrainer(ActivateUserRequestDto activateUserRequestDto) throws Exception {
         LOGGER.debug("Activating trainer...");
+        if(activateUserRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         Trainer trainer = trainerDao.findByUsername(activateUserRequestDto.getUsername()).orElse(null);
         if (trainer == null) {
             LOGGER.warn("There is no such trainer found...");
@@ -147,8 +171,12 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void deactivateTrainer(DeactivateUserRequestDto deactivateUserRequestDto) {
+    public void deactivateTrainer(DeactivateUserRequestDto deactivateUserRequestDto) throws Exception {
         LOGGER.debug("Deactivating trainee...");
+        if(deactivateUserRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return;
+        }
         Trainer trainer = trainerDao.findByUsername(deactivateUserRequestDto.getUsername()).orElse(null);
         if (trainer == null) {
             LOGGER.warn("There is no such trainer found...");
@@ -158,8 +186,12 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public GetTrainerTrainingListResponseDto getTrainingByCriteria(GetTrainerTrainingListRequestDto getTrainerTrainingListRequestDto) {
+    public GetTrainerTrainingListResponseDto getTrainingByCriteria(GetTrainerTrainingListRequestDto getTrainerTrainingListRequestDto) throws Exception {
         LOGGER.debug("Getting training list by criteria...");
+        if(getTrainerTrainingListRequestDto == null){
+            LOGGER.warn("Invalid request...");
+            return null;
+        }
         List<Training> trainings = trainerDao.getTrainingByCriteria(
                 getTrainerTrainingListRequestDto.getUsername(),
                 getTrainerTrainingListRequestDto.getFromDate(),

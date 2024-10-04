@@ -1,6 +1,7 @@
 package services;
 
 import org.example.dao.TrainerDao;
+import org.example.dao.TrainingDao;
 import org.example.dto.TraineeDto;
 import org.example.dto.TrainingDto;
 import org.example.dto.requests.trainer.CreateTrainerRequestDto;
@@ -17,8 +18,10 @@ import org.example.dto.responses.trainer.UpdateTrainerResponseDto;
 import org.example.mapper.TraineeMapper;
 import org.example.mapper.TrainerMapper;
 import org.example.mapper.TrainingMapper;
+import org.example.models.Trainee;
 import org.example.models.Trainer;
 import org.example.models.Training;
+import org.example.models.TrainingTypeEntity;
 import org.example.service.impl.TrainerServiceImpl;
 import org.example.service.impl.UserService;
 import org.example.util.Generator;
@@ -42,6 +45,9 @@ class TrainerServiceTest {
     private TrainerDao trainerDao;
 
     @Mock
+    private TrainingDao trainingDao;
+
+    @Mock
     private UserService userService;
 
     @Mock
@@ -62,54 +68,109 @@ class TrainerServiceTest {
     }
 
     @Test
-    void createTrainer_ValidRequest() {
+    void createTrainer_ValidRequest() throws Exception {
         CreateTrainerRequestDto requestDto = new CreateTrainerRequestDto();
         requestDto.setFirstName("John");
         requestDto.setLastName("Doe");
+        TrainingTypeEntity validSpecialization = new TrainingTypeEntity("ValidSpecialization");
+        requestDto.setSpecialization(validSpecialization);
 
         Trainer trainer = new Trainer();
+        trainer.setFirstName("John");
+        trainer.setLastName("Doe");
+        trainer.setSpecialization(validSpecialization);
+
         when(trainerMapper.toTrainer(requestDto)).thenReturn(trainer);
+
         when(userService.getAllExistingUsernames()).thenReturn(List.of("existingUser"));
+
+        when(trainingDao.getTrainingTypes()).thenReturn(List.of(validSpecialization));
 
         try (MockedStatic<Generator> mockedGenerator = mockStatic(Generator.class)) {
             mockedGenerator.when(() -> Generator.generateUsername(trainer.getFirstName(), trainer.getLastName(), List.of("existingUser")))
                     .thenReturn("john.doe");
             mockedGenerator.when(Generator::generatePassword)
-                    .thenReturn("password");
+                    .thenReturn("password123");
 
             CreateTrainerResponseDto expectedResponse = new CreateTrainerResponseDto();
+            expectedResponse.setUsername("john.doe");
+            expectedResponse.setPassword("password123");
+
             when(trainerMapper.toCreateTrainerDto(trainer)).thenReturn(expectedResponse);
 
             CreateTrainerResponseDto response = trainerService.createTrainer(requestDto);
 
             assertThat(response).isEqualTo(expectedResponse);
+
             verify(trainerDao).create(trainer);
         }
     }
+
     @Test
-    void updateTrainer_ValidRequest() {
+    void createTrainer_InvalidSpecialization() throws Exception {
+        CreateTrainerRequestDto requestDto = new CreateTrainerRequestDto();
+        requestDto.setFirstName("John");
+        requestDto.setLastName("Doe");
+        TrainingTypeEntity invalidSpecialization = new TrainingTypeEntity("InvalidSpecialization");
+        requestDto.setSpecialization(invalidSpecialization);
+
+        when(trainingDao.getTrainingTypes()).thenReturn(List.of(new TrainingTypeEntity("ValidSpecialization")));
+
+        CreateTrainerResponseDto response = trainerService.createTrainer(requestDto);
+
+        assertThat(response).isNull();
+
+        verify(trainerDao, never()).create(any(Trainer.class));
+    }
+
+    @Test
+    void updateTrainer_ValidRequest() throws Exception {
         UpdateTrainerRequestDto requestDto = new UpdateTrainerRequestDto();
         requestDto.setUsername("john.doe");
 
         Trainer trainer = new Trainer();
+        trainer.setUsername("john.doe");
+
         when(trainerDao.findByUsername(requestDto.getUsername())).thenReturn(Optional.of(trainer));
+
         when(trainerMapper.toTrainer(requestDto)).thenReturn(trainer);
 
-        List<TraineeDto> traineeDtos = List.of(new TraineeDto());
-        when(traineeMapper.convertTraineesToDto(trainerDao.allTraineesOfTrainer(trainer.getUsername())))
-                .thenReturn(traineeDtos);
+        when(userService.isValid(trainer)).thenReturn(true);
+
+        List<TraineeDto> trainees = List.of(new TraineeDto());
+        when(trainerDao.allTraineesOfTrainer(trainer.getUsername())).thenReturn(List.of(new Trainee()));
+        when(traineeMapper.convertTraineesToDto(anyList())).thenReturn(trainees);
 
         UpdateTrainerResponseDto expectedResponse = new UpdateTrainerResponseDto();
-        when(trainerMapper.toUpdateTrainerDto(trainer, traineeDtos)).thenReturn(expectedResponse);
+        expectedResponse.setUsername("john.doe");
+        expectedResponse.setTraineeDtos(trainees);
+
+        when(trainerMapper.toUpdateTrainerDto(trainer, trainees)).thenReturn(expectedResponse);
 
         UpdateTrainerResponseDto response = trainerService.updateTrainer(requestDto);
 
         assertThat(response).isEqualTo(expectedResponse);
+
         verify(trainerDao).update(trainer);
     }
 
     @Test
-    void getTrainerByUsername_ValidRequest() {
+    void updateTrainer_InvalidRequest() throws Exception {
+        UpdateTrainerRequestDto requestDto = new UpdateTrainerRequestDto();
+        requestDto.setUsername("non.existent");
+
+        when(trainerDao.findByUsername(requestDto.getUsername())).thenReturn(Optional.empty());
+
+        UpdateTrainerResponseDto response = trainerService.updateTrainer(requestDto);
+
+        assertThat(response).isNull();
+
+        verify(trainerDao, never()).update(any(Trainer.class));
+    }
+
+
+    @Test
+    void getTrainerByUsername_ValidRequest() throws Exception {
         GetTrainerByUsernameRequestDto requestDto = new GetTrainerByUsernameRequestDto();
         requestDto.setUsername("john.doe");
 
@@ -130,7 +191,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void changePassword_ValidRequest() {
+    void changePassword_ValidRequest() throws Exception {
         ChangePasswordRequestDto requestDto = new ChangePasswordRequestDto();
         requestDto.setUsername("john.doe");
         requestDto.setOldPassword("oldPassword");
@@ -147,7 +208,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void activateTrainer_ValidRequest() {
+    void activateTrainer_ValidRequest() throws Exception {
         ActivateUserRequestDto requestDto = new ActivateUserRequestDto();
         requestDto.setUsername("john.doe");
 
@@ -160,7 +221,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void deactivateTrainer_ValidRequest() {
+    void deactivateTrainer_ValidRequest() throws Exception {
         DeactivateUserRequestDto requestDto = new DeactivateUserRequestDto();
         requestDto.setUsername("john.doe");
 
@@ -173,7 +234,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainingByCriteria_ValidRequest() {
+    void getTrainingByCriteria_ValidRequest() throws Exception {
         GetTrainerTrainingListRequestDto requestDto = new GetTrainerTrainingListRequestDto();
         requestDto.setUsername("john.doe");
         requestDto.setFromDate(new Date());

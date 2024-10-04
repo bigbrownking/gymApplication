@@ -30,57 +30,45 @@ class TrainingControllerTest {
     }
 
     @Test
-    void getTrainingTypes_shouldReturnTrainingTypes() {
-        // Arrange
+    void getTrainingTypes_shouldReturnTrainingTypes() throws Exception {
         GetTrainingTypesResponseDto expectedResponse = new GetTrainingTypesResponseDto();
         when(trainingService.getTrainingTypes()).thenReturn(expectedResponse);
 
-        // Act
         ResponseEntity<GetTrainingTypesResponseDto> responseEntity = trainingController.getTrainingTypes();
 
-        // Assert
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody()).isEqualTo(expectedResponse);
         verify(trainingService, times(1)).getTrainingTypes();
     }
 
     @Test
-    void getTrainingTypes_shouldReturnInternalServerError_onException() {
-        // Arrange
+    void getTrainingTypes_shouldReturnInternalServerError_onException() throws Exception {
         when(trainingService.getTrainingTypes()).thenThrow(new RuntimeException("Database error"));
 
-        // Act
         ResponseEntity<GetTrainingTypesResponseDto> responseEntity = trainingController.getTrainingTypes();
 
-        // Assert
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         verify(trainingService, times(1)).getTrainingTypes();
     }
 
     @Test
-    void addTraining_shouldReturnCreatedStatus() {
-        // Arrange
+    void addTraining_shouldReturnCreatedStatus() throws Exception {
         CreateTrainingRequestDto requestDto = new CreateTrainingRequestDto();
         doNothing().when(trainingService).createTraining(requestDto);
 
-        // Act
         ResponseEntity<Void> responseEntity = trainingController.addTraining(requestDto);
 
-        // Assert
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         verify(trainingService, times(1)).createTraining(requestDto);
     }
 
     @Test
-    void addTraining_shouldReturnInternalServerError_onException() {
-        // Arrange
+    void addTraining_shouldReturnInternalServerError_onException() throws Exception {
         CreateTrainingRequestDto requestDto = new CreateTrainingRequestDto();
         doThrow(new RuntimeException("Database error")).when(trainingService).createTraining(requestDto);
 
-        // Act
         ResponseEntity<Void> responseEntity = trainingController.addTraining(requestDto);
 
-        // Assert
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         verify(trainingService, times(1)).createTraining(requestDto);
     }

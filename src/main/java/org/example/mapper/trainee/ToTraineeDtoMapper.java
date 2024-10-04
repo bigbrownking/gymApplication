@@ -5,7 +5,6 @@ import org.example.dto.TrainingDto;
 import org.example.dto.responses.trainee.*;
 import org.example.models.Trainee;
 
-import javax.validation.constraints.AssertTrue;
 import java.util.List;
 
 

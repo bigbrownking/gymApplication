@@ -20,13 +20,12 @@ import java.util.Date;
 import java.util.List;
 
 public interface TrainerService {
-    CreateTrainerResponseDto createTrainer(CreateTrainerRequestDto createTrainerRequestDto);
-    UpdateTrainerResponseDto updateTrainer(UpdateTrainerRequestDto updateTrainerRequestDto);
-    GetTrainerByUsernameResponseDto getTrainerByUsername(GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto);
-    void getTrainerByUsernameAndPassword(LoginRequestDto loginRequestDto);
-    List<Trainer> getAllTrainers();
-    void changePassword(ChangePasswordRequestDto changePasswordRequestDto);
-    void activateTrainer(ActivateUserRequestDto activateUserRequestDto);
-    void deactivateTrainer(DeactivateUserRequestDto deactivateUserRequestDto);
-    GetTrainerTrainingListResponseDto getTrainingByCriteria(GetTrainerTrainingListRequestDto getTrainerTrainingListRequestDto);
+    CreateTrainerResponseDto createTrainer(CreateTrainerRequestDto createTrainerRequestDto) throws Exception;
+    UpdateTrainerResponseDto updateTrainer(UpdateTrainerRequestDto updateTrainerRequestDto) throws Exception;
+    GetTrainerByUsernameResponseDto getTrainerByUsername(GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto) throws Exception;
+    void getTrainerByUsernameAndPassword(LoginRequestDto loginRequestDto) throws Exception;
+    void changePassword(ChangePasswordRequestDto changePasswordRequestDto) throws Exception;
+    void activateTrainer(ActivateUserRequestDto activateUserRequestDto) throws Exception;
+    void deactivateTrainer(DeactivateUserRequestDto deactivateUserRequestDto) throws Exception;
+    GetTrainerTrainingListResponseDto getTrainingByCriteria(GetTrainerTrainingListRequestDto getTrainerTrainingListRequestDto) throws Exception;
 }

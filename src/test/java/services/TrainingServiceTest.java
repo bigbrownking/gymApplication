@@ -47,8 +47,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void createTraining_ValidRequest() {
-        // Given
+    void createTraining_ValidRequest() throws Exception {
         CreateTrainingRequestDto requestDto = new CreateTrainingRequestDto();
         requestDto.setTraineeUsername("traineeUser");
         requestDto.setTrainerUsername("trainerUser");
@@ -61,15 +60,13 @@ class TrainingServiceTest {
         when(trainerDao.findByUsername("trainerUser")).thenReturn(Optional.of(trainer));
         when(trainingMapper.toTraining(requestDto, trainee, trainer)).thenReturn(training);
 
-        // When
         trainingService.createTraining(requestDto);
 
-        // Then
         verify(trainingDao).create(training);
     }
 
     @Test
-    void createTraining_InvalidTrainee() {
+    void createTraining_InvalidTrainee() throws Exception {
         CreateTrainingRequestDto requestDto = new CreateTrainingRequestDto();
         requestDto.setTraineeUsername("traineeUser");
         requestDto.setTrainerUsername("trainerUser");
@@ -82,7 +79,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    void createTraining_InvalidTrainer() {
+    void createTraining_InvalidTrainer() throws Exception {
         CreateTrainingRequestDto requestDto = new CreateTrainingRequestDto();
         requestDto.setTraineeUsername("traineeUser");
         requestDto.setTrainerUsername("trainerUser");
@@ -96,33 +93,17 @@ class TrainingServiceTest {
         verify(trainingDao, never()).create(any());
     }
 
-    @Test
-    void getAllTrainings() {
-        // Given
-        List<Training> trainings = Collections.singletonList(new Training());
-        when(trainingDao.listAll()).thenReturn(trainings);
-
-        // When
-        List<Training> result = trainingService.getAllTrainings();
-
-        // Then
-        assertThat(result).isEqualTo(trainings);
-        verify(trainingDao).listAll();
-    }
 
     @Test
-    void getTrainingTypes() {
-        // Given
+    void getTrainingTypes() throws Exception {
         List<TrainingTypeEntity> trainingTypes = Collections.singletonList(new TrainingTypeEntity());
         GetTrainingTypesResponseDto expectedResponse = new GetTrainingTypesResponseDto();
 
         when(trainingDao.getTrainingTypes()).thenReturn(trainingTypes);
         when(trainingMapper.toGetTrainingTypesDto(trainingTypes)).thenReturn(expectedResponse);
 
-        // When
         GetTrainingTypesResponseDto result = trainingService.getTrainingTypes();
 
-        // Then
         assertThat(result).isEqualTo(expectedResponse);
         verify(trainingDao).getTrainingTypes();
     }

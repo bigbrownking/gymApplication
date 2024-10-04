@@ -38,9 +38,9 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public void createTraining(CreateTrainingRequestDto createTrainingRequestDto) {
+    public void createTraining(CreateTrainingRequestDto createTrainingRequestDto) throws Exception {
         if(createTrainingRequestDto == null){
-            LOGGER.warn("Invalid training...");
+            LOGGER.warn("Invalid request...");
         }
         LOGGER.info("Creating new training...");
         Trainee trainee = traineeDao.findByUsername(createTrainingRequestDto.getTraineeUsername()).orElse(null);
@@ -59,15 +59,8 @@ public class TrainingServiceImpl implements TrainingService {
         trainingDao.create(training);
     }
 
-
     @Override
-    public List<Training> getAllTrainings() {
-        LOGGER.info("Retrieving all trainings...");
-        return trainingDao.listAll();
-    }
-
-    @Override
-    public GetTrainingTypesResponseDto getTrainingTypes() {
+    public GetTrainingTypesResponseDto getTrainingTypes() throws Exception {
         LOGGER.info("Retrieving all training types...");
         List<TrainingTypeEntity> trainingTypeEntities = trainingDao.getTrainingTypes();
         return trainingMapper.toGetTrainingTypesDto(trainingTypeEntities);

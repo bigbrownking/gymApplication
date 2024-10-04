@@ -2,13 +2,9 @@ package org.example.util;
 
 import lombok.experimental.UtilityClass;
 import org.apache.commons.text.RandomStringGenerator;
-import org.example.models.User;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class Generator {
