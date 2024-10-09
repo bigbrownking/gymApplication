@@ -5,8 +5,8 @@ import lombok.Setter;
 import org.example.models.TrainingTypeEntity;
 import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.NotNull;
-import java.util.Date;
+import jakarta.validation.constraints.NotNull;
+
 
 @Getter
 @Setter

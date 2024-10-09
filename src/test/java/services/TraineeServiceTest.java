@@ -7,10 +7,7 @@ import org.example.dto.requests.trainee.*;
 import org.example.dto.requests.user.ActivateUserRequestDto;
 import org.example.dto.requests.user.ChangePasswordRequestDto;
 import org.example.dto.requests.user.DeactivateUserRequestDto;
-import org.example.dto.responses.trainee.CreateTraineeResponseDto;
-import org.example.dto.responses.trainee.GetNotAssignedTrainersResponseDto;
-import org.example.dto.responses.trainee.GetTraineeByUsernameResponseDto;
-import org.example.dto.responses.trainee.GetTraineeTrainingListResponseDto;
+import org.example.dto.responses.trainee.*;
 import org.example.mapper.TraineeMapper;
 import org.example.mapper.TrainerMapper;
 import org.example.mapper.TrainingMapper;
@@ -63,64 +60,97 @@ class TraineeServiceTest {
     }
 
     @Test
-    void createTrainee_ValidRequest() {
+    void createTrainee_ValidRequest() throws Exception {
         CreateTraineeRequestDto requestDto = new CreateTraineeRequestDto();
-        requestDto.setFirstName("John");
-        requestDto.setLastName("Doe");
+        requestDto.setFirstName("Jane");
+        requestDto.setLastName("Smith");
 
         Trainee trainee = new Trainee();
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
+        trainee.setFirstName("Jane");
+        trainee.setLastName("Smith");
 
-        when(userService.getAllExistingUsernames()).thenReturn(List.of("existing.username"));
         when(traineeMapper.toTrainee(requestDto)).thenReturn(trainee);
 
-        try (MockedStatic<Generator> generatorMock = mockStatic(Generator.class)) {
-            generatorMock.when(() -> Generator.generateUsername(anyString(), anyString(), anyList()))
-                    .thenReturn("john.doe");
-            generatorMock.when(Generator::generatePassword).thenReturn("password123");
+        when(userService.getAllExistingUsernames()).thenReturn(List.of("existingUser"));
 
-            CreateTraineeResponseDto responseDto = new CreateTraineeResponseDto();
-            responseDto.setUsername("john.doe");
-            responseDto.setPassword("password123");
+        try (MockedStatic<Generator> mockedGenerator = mockStatic(Generator.class)) {
+            mockedGenerator.when(() -> Generator.generateUsername(trainee.getFirstName(), trainee.getLastName(), List.of("existingUser")))
+                    .thenReturn("jane.smith");
+            mockedGenerator.when(Generator::generatePassword)
+                    .thenReturn("password123");
 
-            when(traineeMapper.toCreateTraineeDto(trainee)).thenReturn(responseDto);
+            CreateTraineeResponseDto expectedResponse = new CreateTraineeResponseDto();
+            expectedResponse.setUsername("jane.smith");
+            expectedResponse.setPassword("password123");
 
-            CreateTraineeResponseDto result = traineeService.createTrainee(requestDto);
+            when(traineeMapper.toCreateTraineeDto(trainee)).thenReturn(expectedResponse);
 
-            assertThat(result).isNotNull();
-            assertThat(result.getUsername()).isEqualTo("john.doe");
-            assertThat(result.getPassword()).isEqualTo("password123");
+            CreateTraineeResponseDto response = traineeService.createTrainee(requestDto);
 
-            verify(traineeDao).create(any(Trainee.class));
+            assertThat(response).isEqualTo(expectedResponse);
+
+            verify(traineeDao).create(trainee);
         }
     }
 
     @Test
-    void updateTrainee_ValidRequest() {
+    void createTrainee_InvalidRequest() throws Exception {
+        CreateTraineeResponseDto response = traineeService.createTrainee(null);
+
+        assertThat(response).isNull();
+
+        verify(traineeDao, never()).create(any(Trainee.class));
+    }
+
+
+    @Test
+    void updateTrainee_ValidRequest() throws Exception {
         UpdateTraineeRequestDto requestDto = new UpdateTraineeRequestDto();
-        requestDto.setUsername("john.doe");
+        requestDto.setUsername("jane.smith");
 
         Trainee trainee = new Trainee();
-        trainee.setUsername("john.doe");
+        trainee.setUsername("jane.smith");
 
-        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeDao.findByUsername(requestDto.getUsername())).thenReturn(Optional.of(trainee));
+
         when(traineeMapper.toTrainee(requestDto)).thenReturn(trainee);
 
-        List<Trainer> trainers = List.of(new Trainer());
-        when(traineeDao.getTrainersAssignedToTrainee("john.doe")).thenReturn(trainers);
+        when(userService.isValid(trainee)).thenReturn(true);
 
-        List<TrainerDto> trainerDtos = List.of(new TrainerDto());
-        when(trainerMapper.convertTrainersToDto(trainers)).thenReturn(trainerDtos);
+        List<TrainerDto> trainers = List.of(new TrainerDto());
+        when(traineeDao.getTrainersAssignedToTrainee(trainee.getUsername())).thenReturn(List.of(new Trainer()));
+        when(trainerMapper.convertTrainersToDto(anyList())).thenReturn(trainers);
 
-        traineeService.updateTrainee(requestDto);
+        UpdateTraineeResponseDto expectedResponse = new UpdateTraineeResponseDto();
+        expectedResponse.setUsername("jane.smith");
+        expectedResponse.setTrainerDtoList(trainers);
+
+        when(traineeMapper.toUpdateTraineeDto(trainee, trainers)).thenReturn(expectedResponse);
+
+        UpdateTraineeResponseDto response = traineeService.updateTrainee(requestDto);
+
+        assertThat(response).isEqualTo(expectedResponse);
 
         verify(traineeDao).update(trainee);
-        verify(trainerMapper).convertTrainersToDto(trainers);
     }
 
     @Test
-    void deleteTrainee_ValidRequest() {
+    void updateTrainee_InvalidRequest() throws Exception {
+        UpdateTraineeRequestDto requestDto = new UpdateTraineeRequestDto();
+        requestDto.setUsername("nonexistent.username");
+
+        when(traineeDao.findByUsername(requestDto.getUsername())).thenReturn(Optional.empty());
+
+        UpdateTraineeResponseDto response = traineeService.updateTrainee(requestDto);
+
+        assertThat(response).isNull();
+
+        verify(traineeDao, never()).update(any(Trainee.class));
+    }
+
+
+    @Test
+    void deleteTrainee_ValidRequest() throws Exception {
         DeleteTraineeRequestDto requestDto = new DeleteTraineeRequestDto();
         requestDto.setUsername("john.doe");
 
@@ -132,7 +162,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTraineeByUsername_ValidRequest() {
+    void getTraineeByUsername_ValidRequest() throws Exception {
         GetTraineeByUsernameRequestDto requestDto = new GetTraineeByUsernameRequestDto();
         requestDto.setUsername("john.doe");
 
@@ -156,7 +186,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void changePassword_ValidRequest() {
+    void changePassword_ValidRequest() throws Exception {
         ChangePasswordRequestDto requestDto = new ChangePasswordRequestDto();
         requestDto.setUsername("john.doe");
         requestDto.setOldPassword("oldPass");
@@ -176,7 +206,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void activateTrainee_ValidRequest() {
+    void activateTrainee_ValidRequest() throws Exception {
         ActivateUserRequestDto requestDto = new ActivateUserRequestDto();
         requestDto.setUsername("john.doe");
 
@@ -189,7 +219,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void deactivateTrainee_ValidRequest() {
+    void deactivateTrainee_ValidRequest() throws Exception {
         DeactivateUserRequestDto requestDto = new DeactivateUserRequestDto();
         requestDto.setUsername("john.doe");
 
@@ -201,7 +231,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTrainingByCriteria_ValidRequest() {
+    void getTrainingByCriteria_ValidRequest() throws Exception {
         GetTraineeTrainingListRequestDto requestDto = new GetTraineeTrainingListRequestDto();
         requestDto.setUsername("john.doe");
         requestDto.setFromDate(new Date());
@@ -237,7 +267,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTrainersNotAssignedToTrainee_ValidRequest() {
+    void getTrainersNotAssignedToTrainee_ValidRequest() throws Exception {
         GetNotAssignedTrainersRequestDto requestDto = new GetNotAssignedTrainersRequestDto();
         requestDto.setUsername("john.doe");
 
