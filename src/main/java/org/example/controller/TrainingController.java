@@ -12,6 +12,7 @@ import org.example.service.TrainingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,6 +27,7 @@ public class TrainingController {
         this.trainingService = trainingService;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get available training types")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved training types",
@@ -34,13 +36,10 @@ public class TrainingController {
     })
     @GetMapping("/types")
     public ResponseEntity<GetTrainingTypesResponseDto> getTrainingTypes() {
-        try {
-            GetTrainingTypesResponseDto response = trainingService.getTrainingTypes();
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        GetTrainingTypesResponseDto response = trainingService.getTrainingTypes();
+        return ResponseEntity.ok(response);
     }
+
 
     @Operation(summary = "Register a new training")
     @ApiResponses(value = {
@@ -49,11 +48,7 @@ public class TrainingController {
     })
     @PostMapping("/register")
     public ResponseEntity<Void> addTraining(@RequestBody CreateTrainingRequestDto createTrainingRequestDto) {
-        try {
-            trainingService.createTraining(createTrainingRequestDto);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        trainingService.createTraining(createTrainingRequestDto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

@@ -5,6 +5,7 @@ import org.example.dao.TrainerDao;
 import org.example.dao.TrainingDao;
 import org.example.dto.requests.training.CreateTrainingRequestDto;
 import org.example.dto.responses.training.GetTrainingTypesResponseDto;
+import org.example.exceptions.InvalidDataException;
 import org.example.mapper.TrainingMapper;
 import org.example.models.Trainee;
 import org.example.models.Trainer;
@@ -38,31 +39,41 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    public void createTraining(CreateTrainingRequestDto createTrainingRequestDto) throws Exception {
-        if(createTrainingRequestDto == null){
-            LOGGER.warn("Invalid request...");
-        }
-        LOGGER.info("Creating new training...");
-        Trainee trainee = traineeDao.findByUsername(createTrainingRequestDto.getTraineeUsername()).orElse(null);
-        Trainer trainer = trainerDao.findByUsername(createTrainingRequestDto.getTrainerUsername()).orElse(null);
+    public void createTraining(CreateTrainingRequestDto createTrainingRequestDto) {
+        try {
+            if (createTrainingRequestDto == null) {
+                LOGGER.warn("Invalid request...");
+                return;
+            }
+            LOGGER.info("Creating new training...");
+            Trainee trainee = traineeDao.findByUsername(createTrainingRequestDto.getTraineeUsername()).orElse(null);
+            Trainer trainer = trainerDao.findByUsername(createTrainingRequestDto.getTrainerUsername()).orElse(null);
 
-        if(trainee == null){
-            LOGGER.warn("No such trainee found...");
-            return;
-        }
-        if(trainer == null){
-            LOGGER.warn("No such trainer found...");
-            return;
-        }
+            if (trainee == null) {
+                LOGGER.warn("No such trainee found...");
+                return;
+            }
+            if (trainer == null) {
+                LOGGER.warn("No such trainer found...");
+                return;
+            }
 
-        Training training = trainingMapper.toTraining(createTrainingRequestDto, trainee, trainer);
-        trainingDao.create(training);
+            Training training = trainingMapper.toTraining(createTrainingRequestDto, trainee, trainer);
+            trainingDao.create(training);
+        } catch (InvalidDataException e) {
+            LOGGER.warn("Data is invalid...");
+        }
     }
 
     @Override
-    public GetTrainingTypesResponseDto getTrainingTypes() throws Exception {
-        LOGGER.info("Retrieving all training types...");
-        List<TrainingTypeEntity> trainingTypeEntities = trainingDao.getTrainingTypes();
-        return trainingMapper.toGetTrainingTypesDto(trainingTypeEntities);
+    public GetTrainingTypesResponseDto getTrainingTypes() {
+        try {
+            LOGGER.info("Retrieving all training types...");
+            List<TrainingTypeEntity> trainingTypeEntities = trainingDao.getTrainingTypes();
+            return trainingMapper.toGetTrainingTypesDto(trainingTypeEntities);
+        } catch (InvalidDataException e) {
+            LOGGER.warn("Data is invalid...");
+            return null;
+        }
     }
 }

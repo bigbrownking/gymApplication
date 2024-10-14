@@ -1,35 +1,29 @@
 package org.example.service;
 
 import org.example.dto.requests.trainee.*;
-import org.example.dto.requests.trainer.CreateTrainerRequestDto;
 import org.example.dto.requests.user.ActivateUserRequestDto;
 import org.example.dto.requests.user.ChangePasswordRequestDto;
 import org.example.dto.requests.user.DeactivateUserRequestDto;
 import org.example.dto.requests.user.LoginRequestDto;
 import org.example.dto.responses.trainee.*;
-import org.example.models.Trainee;
-import org.example.models.Trainer;
-import org.example.models.Training;
-import org.example.models.TrainingTypeEntity;
-
-import java.util.Date;
-import java.util.List;
+import org.example.exceptions.*;
 
 public interface TraineeService {
-    CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto) throws Exception;
+    CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto);
 
-    UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto) throws Exception;
+    UpdateTraineeResponseDto updateTrainee(UpdateTraineeRequestDto updateTraineeRequestDto);
 
-    void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto) throws Exception;
+    void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto);
 
-    GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) throws Exception;
-    void getTraineeByUsernameAndPassword(LoginRequestDto loginRequestDto) throws Exception;
-    void changePassword(ChangePasswordRequestDto changePasswordRequestDto) throws Exception;
+    GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto);
 
-    void activateTrainee(ActivateUserRequestDto activateUserRequestDto) throws Exception;
+    void changePassword(ChangePasswordRequestDto changePasswordRequestDto);
 
-    void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto) throws Exception;
-    GetTraineeTrainingListResponseDto getTrainingByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto) throws Exception;
+    void activateTrainee(ActivateUserRequestDto activateUserRequestDto);
 
-    GetNotAssignedTrainersResponseDto getTrainersNotAssignedToTrainee(GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto) throws Exception;
+    void deactivateTrainee(DeactivateUserRequestDto deactivateUserRequestDto);
+
+    GetTraineeTrainingListResponseDto getTrainingByCriteria(GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto);
+    GetNotAssignedTrainersResponseDto getTrainersNotAssignedToTrainee(GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto);
+    String getPasswordFromTrainee(String username);
 }

@@ -8,6 +8,6 @@ import org.example.models.TrainingTypeEntity;
 import java.util.List;
 
 public interface TrainingService {
-    void createTraining(CreateTrainingRequestDto createTrainingRequestDto) throws Exception;
-    GetTrainingTypesResponseDto getTrainingTypes() throws Exception;
+    void createTraining(CreateTrainingRequestDto createTrainingRequestDto);
+    GetTrainingTypesResponseDto getTrainingTypes();
 }
