@@ -2,10 +2,9 @@ package org.example.service.impl;
 
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
+import org.example.exceptions.EntityNotFoundException;
+import org.example.exceptions.InvalidDataException;
 import org.example.models.*;
-import org.example.service.TraineeService;
-import org.example.service.TrainerService;
-import org.example.service.TrainingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,26 +31,21 @@ public class UserService {
         this.trainerDao = trainerDao;
     }
 
-    private List<String> trainerUsernames() throws Exception {
+    private List<String> trainerUsernames(){
         return trainerDao.listAll().stream()
                 .map(Trainer::getUsername)
                 .toList();
     }
 
-    private List<String> traineeUsernames() throws Exception {
+    private List<String> traineeUsernames() {
         return traineeDao.listAll().stream()
                 .map(Trainee::getUsername)
                 .toList();
     }
 
-    public List<String> getAllExistingUsernames() throws Exception {
+    public List<String> getAllExistingUsernames() {
         return Stream.concat(trainerUsernames().stream(), traineeUsernames().stream())
                 .collect(Collectors.toList());
-    }
-
-    public boolean isAuthenticated(String username, String password) throws Exception {
-        return traineeDao.findByUsernameAndPassword(username, password).isPresent()
-                || trainerDao.findByUsernameAndPassword(username, password).isPresent();
     }
 
     public boolean isValid(User user) {
@@ -66,32 +60,38 @@ public class UserService {
         return false;
     }
     public void activate(User user) {
-        if (user != null && !user.isActive() && user instanceof Trainee){
-            user.setActive(true);
-            LOGGER.debug("Activating trainee...");
-            traineeDao.update((Trainee) user);
-        }else if(user != null && !user.isActive() && user instanceof Trainer){
-            user.setActive(true);
-            LOGGER.debug("Activating trainer...");
-            trainerDao.update((Trainer) user);
-        }
-        else{
-            LOGGER.warn("User is already active...");
+        try {
+            if (user != null && !user.isActive() && user instanceof Trainee) {
+                user.setActive(true);
+                LOGGER.debug("Activating trainee...");
+                traineeDao.update((Trainee) user);
+            } else if (user != null && !user.isActive() && user instanceof Trainer) {
+                user.setActive(true);
+                LOGGER.debug("Activating trainer...");
+                trainerDao.update((Trainer) user);
+            } else {
+                LOGGER.warn("User is already active...");
+            }
+        } catch (EntityNotFoundException | InvalidDataException e) {
+            LOGGER.warn("Entity not found or data is invalid...");
         }
     }
 
     public void deactivate(User user) {
-        if (user != null && user.isActive() && user instanceof Trainee){
-            user.setActive(false);
-            LOGGER.debug("Deactivating trainee...");
-            traineeDao.update((Trainee) user);
-        }else if(user != null && user.isActive() && user instanceof Trainer){
-            user.setActive(false);
-            LOGGER.debug("Deactivating trainer...");
-            trainerDao.update((Trainer) user);
-        }
-        else{
-            LOGGER.warn("User is already not active...");
+        try {
+            if (user != null && user.isActive() && user instanceof Trainee) {
+                user.setActive(false);
+                LOGGER.debug("Deactivating trainee...");
+                traineeDao.update((Trainee) user);
+            } else if (user != null && user.isActive() && user instanceof Trainer) {
+                user.setActive(false);
+                LOGGER.debug("Deactivating trainer...");
+                trainerDao.update((Trainer) user);
+            } else {
+                LOGGER.warn("User is already not active...");
+            }
+        } catch (EntityNotFoundException | InvalidDataException e) {
+            LOGGER.warn("Entity not found or data is invalid...");
         }
     }
 

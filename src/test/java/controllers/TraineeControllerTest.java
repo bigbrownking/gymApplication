@@ -1,129 +1,227 @@
 package controllers;
 
-import static org.mockito.Mockito.*;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.controller.TraineeController;
+import org.example.dto.TrainerDto;
 import org.example.dto.requests.trainee.*;
-import org.example.dto.requests.user.ChangePasswordRequestDto;
-import org.example.dto.requests.user.LoginRequestDto;
+import org.example.dto.requests.user.ActivateUserRequestDto;
+import org.example.dto.requests.user.DeactivateUserRequestDto;
 import org.example.dto.responses.trainee.*;
+import org.example.exceptions.EntityNotFoundException;
+import org.example.exceptions.GlobalExceptionHandler;
+import org.example.models.TrainingTypeEntity;
 import org.example.service.TraineeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-public class TraineeControllerTest {
+import java.util.List;
 
-    private TraineeService traineeService;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+class TraineeControllerTest {
+
+    @InjectMocks
     private TraineeController traineeController;
 
+    @Mock
+    private TraineeService traineeService;
+
+    private MockMvc mockMvc;
+
+    private ObjectMapper objectMapper;
+
     @BeforeEach
-    public void setUp() {
-        traineeService = mock(TraineeService.class);
-        traineeController = new TraineeController(traineeService);
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(traineeController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+        objectMapper = new ObjectMapper();
     }
 
     @Test
-    public void testRegisterTrainee_Success() throws Exception {
+    void registerTrainee_Success() throws Exception {
         CreateTraineeRequestDto requestDto = new CreateTraineeRequestDto();
+        requestDto.setFirstName("John");
+        requestDto.setLastName("Doe");
+
         CreateTraineeResponseDto responseDto = new CreateTraineeResponseDto();
+        responseDto.setUsername("johndoe");
+        responseDto.setPassword("securePassword");
 
-        when(traineeService.createTrainee(requestDto)).thenReturn(responseDto);
+        when(traineeService.createTrainee(any(CreateTraineeRequestDto.class))).thenReturn(responseDto);
 
-        ResponseEntity<CreateTraineeResponseDto> response = traineeController.registerTrainee(requestDto);
-
-        verify(traineeService).createTrainee(requestDto);
-        assert response.getStatusCode() == HttpStatus.CREATED;
-        assert response.getBody() == responseDto;
+        mockMvc.perform(post("/trainee/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.username").value(responseDto.getUsername()))
+                .andExpect(jsonPath("$.password").value(responseDto.getPassword()));
     }
 
     @Test
-    public void testLogin_Success() throws Exception {
-        LoginRequestDto loginRequestDto = new LoginRequestDto();
-
-        doNothing().when(traineeService).getTraineeByUsernameAndPassword(loginRequestDto);
-
-        ResponseEntity<Void> response = traineeController.login(loginRequestDto);
-
-        verify(traineeService).getTraineeByUsernameAndPassword(loginRequestDto);
-        assert response.getStatusCode() == HttpStatus.OK;
-    }
-
-    @Test
-    public void testUpdateTrainee_Success() throws Exception {
+    void updateTrainee_Success() throws Exception {
         UpdateTraineeRequestDto requestDto = new UpdateTraineeRequestDto();
+        requestDto.setUsername("johndoe");
+        requestDto.setFirstName("John");
+        requestDto.setLastName("Doe");
+        requestDto.setActive(true);
+
         UpdateTraineeResponseDto responseDto = new UpdateTraineeResponseDto();
+        responseDto.setUsername("johndoe");
+        responseDto.setFirstName("John");
+        responseDto.setLastName("Doe");
+        responseDto.setActive(true);
 
-        when(traineeService.updateTrainee(requestDto)).thenReturn(responseDto);
+        when(traineeService.updateTrainee(any(UpdateTraineeRequestDto.class))).thenReturn(responseDto);
 
-        ResponseEntity<UpdateTraineeResponseDto> response = traineeController.updateTrainee(requestDto);
-
-        verify(traineeService).updateTrainee(requestDto);
-        assert response.getStatusCode() == HttpStatus.OK;
-        assert response.getBody() == responseDto;
+        mockMvc.perform(put("/trainee/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.username").value(responseDto.getUsername()))
+                .andExpect(jsonPath("$.firstName").value(responseDto.getFirstName()))
+                .andExpect(jsonPath("$.lastName").value(responseDto.getLastName()));
     }
 
     @Test
-    public void testUpdateTrainee_NotFound() throws Exception {
+    void updateTrainee_NotFound() throws Exception {
         UpdateTraineeRequestDto requestDto = new UpdateTraineeRequestDto();
+        requestDto.setUsername("nonexistentuser");
 
-        when(traineeService.updateTrainee(requestDto)).thenReturn(null);
+        when(traineeService.updateTrainee(any(UpdateTraineeRequestDto.class))).thenThrow(
+                new EntityNotFoundException());
 
-        ResponseEntity<UpdateTraineeResponseDto> response = traineeController.updateTrainee(requestDto);
-
-        verify(traineeService).updateTrainee(requestDto);
-        assert response.getStatusCode() == HttpStatus.NOT_FOUND;
+        mockMvc.perform(put("/trainee/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Entity not found"));
     }
 
     @Test
-    public void testDeleteTrainee_Success() throws Exception {
+    void deleteTrainee_Success() throws Exception {
         DeleteTraineeRequestDto requestDto = new DeleteTraineeRequestDto();
+        requestDto.setUsername("johndoe");
 
-        doNothing().when(traineeService).deleteTrainee(requestDto);
+        mockMvc.perform(delete("/trainee/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is2xxSuccessful());
 
-        ResponseEntity<Void> response = traineeController.deleteTrainee(requestDto);
-
-        verify(traineeService).deleteTrainee(requestDto);
-        assert response.getStatusCode() == HttpStatus.NO_CONTENT;
     }
 
     @Test
-    public void testGetTraineeByUsername_Success() throws Exception {
+    void getNotAssignedTrainers_Success() throws Exception {
+        GetNotAssignedTrainersRequestDto requestDto = new GetNotAssignedTrainersRequestDto();
+        requestDto.setUsername("testUser");
+
+        TrainerDto trainerDto1 = new TrainerDto();
+
+        trainerDto1.setUsername("Trainer One");
+        trainerDto1.setSpecialization(new TrainingTypeEntity("Specialization A"));
+
+        TrainerDto trainerDto2 = new TrainerDto();
+        trainerDto2.setUsername("Trainer Two");
+        trainerDto2.setSpecialization(new TrainingTypeEntity("Specialization B"));
+
+        List<TrainerDto> trainerDtos = List.of(trainerDto1, trainerDto2);
+
+        GetNotAssignedTrainersResponseDto responseDto = new GetNotAssignedTrainersResponseDto();
+        responseDto.setTrainerDtos(trainerDtos);
+
+        when(traineeService.getTrainersNotAssignedToTrainee(any(GetNotAssignedTrainersRequestDto.class))).thenReturn(responseDto);
+
+        mockMvc.perform(get("/trainee/notAssignedTrainers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.trainerDtos[0].username").value("Trainer One"))
+                .andExpect(jsonPath("$.trainerDtos[1].username").value("Trainer Two"));
+    }
+
+
+    @Test
+    void getTraineeByUsername_Success() throws Exception {
         GetTraineeByUsernameRequestDto requestDto = new GetTraineeByUsernameRequestDto();
+        requestDto.setUsername("johndoe");
+
         GetTraineeByUsernameResponseDto responseDto = new GetTraineeByUsernameResponseDto();
+        responseDto.setFirstName("john");
+        responseDto.setLastName("doe");
 
-        when(traineeService.getTraineeByUsername(requestDto)).thenReturn(responseDto);
+        when(traineeService.getTraineeByUsername(any(GetTraineeByUsernameRequestDto.class)))
+                .thenReturn(responseDto);
 
-        ResponseEntity<GetTraineeByUsernameResponseDto> response = traineeController.getTraineeByUsername(requestDto);
-
-        verify(traineeService).getTraineeByUsername(requestDto);
-        assert response.getStatusCode() == HttpStatus.OK;
-        assert response.getBody() == responseDto;
+        mockMvc.perform(get("/trainee/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.firstName").value(responseDto.getFirstName()))
+                .andExpect(jsonPath("$.lastName").value(responseDto.getLastName()));
     }
 
     @Test
-    public void testGetTraineeByUsername_NotFound() throws Exception {
+    void getTraineeByUsername_NotFound() throws Exception {
         GetTraineeByUsernameRequestDto requestDto = new GetTraineeByUsernameRequestDto();
+        requestDto.setUsername("nonexistentuser");
 
-        when(traineeService.getTraineeByUsername(requestDto)).thenReturn(null);
+        when(traineeService.getTraineeByUsername(any(GetTraineeByUsernameRequestDto.class)))
+                .thenThrow(new EntityNotFoundException());
 
-        ResponseEntity<GetTraineeByUsernameResponseDto> response = traineeController.getTraineeByUsername(requestDto);
-
-        verify(traineeService).getTraineeByUsername(requestDto);
-        assert response.getStatusCode() == HttpStatus.NOT_FOUND;
+        mockMvc.perform(get("/trainee/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Entity not found"));
     }
 
     @Test
-    public void testChangePassword_Success() throws Exception {
-        ChangePasswordRequestDto requestDto = new ChangePasswordRequestDto();
+    void getTrainings_Success() throws Exception {
+        GetTraineeTrainingListRequestDto requestDto = new GetTraineeTrainingListRequestDto();
+        GetTraineeTrainingListResponseDto responseDto = new GetTraineeTrainingListResponseDto();
 
-        doNothing().when(traineeService).changePassword(requestDto);
+        when(traineeService.getTrainingByCriteria(any(GetTraineeTrainingListRequestDto.class))).thenReturn(responseDto);
 
-        ResponseEntity<Void> response = traineeController.changePassword(requestDto);
-
-        verify(traineeService).changePassword(requestDto);
-        assert response.getStatusCode() == HttpStatus.OK;
+        mockMvc.perform(get("/trainee/trainings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
+    @Test
+    void activateTrainee_Success() throws Exception {
+        ActivateUserRequestDto requestDto = new ActivateUserRequestDto();
+        requestDto.setUsername("johndoe");
+
+        mockMvc.perform(patch("/trainee/activate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deactivateTrainee_Success() throws Exception {
+        DeactivateUserRequestDto requestDto = new DeactivateUserRequestDto();
+        requestDto.setUsername("johndoe");
+
+        mockMvc.perform(patch("/trainee/deactivate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
+    }
 }
