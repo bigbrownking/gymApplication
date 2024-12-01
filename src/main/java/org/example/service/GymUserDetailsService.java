@@ -41,9 +41,10 @@ public class GymUserDetailsService implements UserDetailsService {
                 return new GymUserDetails(
                         username,
                         trainerService.getPasswordFromTrainer(username),
-                        List.of(() -> "TRAINER"),
+                        List.of(() -> "ROLE_TRAINER"),
                         trainerResponse.isActive());
             }
+
         } catch (Exception e) {
             LOGGER.warn("Trainer not found...");
         }
@@ -57,7 +58,7 @@ public class GymUserDetailsService implements UserDetailsService {
                 return new GymUserDetails(
                         username,
                         traineeService.getPasswordFromTrainee(username),
-                        List.of(() -> "TRAINEE"),
+                        List.of(() -> "ROLE_TRAINEE"),
                         traineeResponse.isActive());
             }
         } catch (Exception e) {

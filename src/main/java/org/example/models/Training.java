@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 
@@ -33,7 +35,7 @@ public class Training {
     private TrainingTypeEntity trainingType;
 
     @Column(name = "training_date", nullable = false)
-    private Date trainingDate;
+    private LocalDateTime trainingDate;
 
     @Column(name = "training_duration", nullable = false)
     private Integer trainingDuration;

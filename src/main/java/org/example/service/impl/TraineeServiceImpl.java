@@ -1,8 +1,10 @@
 package org.example.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.example.dao.TraineeDao;
 import org.example.dto.TrainerDto;
 import org.example.dto.requests.trainee.*;
+import org.example.dto.requests.trainer.GetWorkloadRequest;
 import org.example.dto.requests.user.ActivateUserRequestDto;
 import org.example.dto.requests.user.ChangePasswordRequestDto;
 import org.example.dto.requests.user.DeactivateUserRequestDto;
@@ -19,13 +21,20 @@ import org.example.service.TraineeService;
 import org.example.util.Generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TraineeServiceImpl.class);
     private final TraineeDao traineeDao;
@@ -34,21 +43,11 @@ public class TraineeServiceImpl implements TraineeService {
     private final TrainerMapper trainerMapper;
     private final TrainingMapper trainingMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RestTemplate restTemplate;
 
-    @Autowired
-    public TraineeServiceImpl(TraineeDao traineeDao,
-                              UserService userService,
-                              TraineeMapper traineeMapper,
-                              TrainerMapper trainerMapper,
-                              TrainingMapper trainingMapper,
-                              PasswordEncoder passwordEncoder) {
-        this.traineeDao = traineeDao;
-        this.userService = userService;
-        this.traineeMapper = traineeMapper;
-        this.trainerMapper = trainerMapper;
-        this.trainingMapper = trainingMapper;
-        this.passwordEncoder = passwordEncoder;
-    }
+    @Value("${secondary.microservice.url}")
+    private String secondaryMicroserviceUrl;
+
 
     @Override
     public CreateTraineeResponseDto createTrainee(CreateTraineeRequestDto createTraineeRequestDto) {
@@ -58,10 +57,13 @@ public class TraineeServiceImpl implements TraineeService {
                 LOGGER.warn("Invalid request...");
                 return null;
             }
+            LOGGER.warn("Request DTO: {}", createTraineeRequestDto);
             List<String> existingUsernames = userService.getAllExistingUsernames();
-            LOGGER.debug("Generating new username and password...");
+            LOGGER.warn("Generating new username and password...");
+
 
             Trainee trainee = traineeMapper.toTrainee(createTraineeRequestDto);
+            LOGGER.warn("Mapped Trainee: {}", trainee);
             String username = Generator.generateUsername(trainee.getFirstName(), trainee.getLastName(), existingUsernames);
             String rawPassword = Generator.generatePassword();
 
@@ -69,9 +71,11 @@ public class TraineeServiceImpl implements TraineeService {
             trainee.setPassword(passwordEncoder.encode(rawPassword));
             trainee.setActive(true);
             traineeDao.create(trainee);
+            LOGGER.warn("Trainee persisted successfully.");
 
             CreateTraineeResponseDto responseDto = traineeMapper.toCreateTraineeDto(trainee);
             responseDto.setPassword(rawPassword);
+            LOGGER.warn("Response DTO: {}", responseDto);
 
             return responseDto;
         } catch (InvalidDataException e) {
@@ -116,15 +120,58 @@ public class TraineeServiceImpl implements TraineeService {
                 LOGGER.warn("Invalid request...");
                 return;
             }
+            List<Trainer> assignedTrainers = traineeDao.getTrainersAssignedToTrainee(deleteTraineeRequestDto.getUsername());
+            for (Trainer trainer : assignedTrainers) {
+                for (Training training : trainer.getTrainings()) {
+                    if (training.getTrainee() != null &&
+                            training.getTrainee().getUsername().equals(deleteTraineeRequestDto.getUsername()) &&
+                            training.getTrainingDate().isAfter(LocalDateTime.now())) {
+
+
+                        GetWorkloadRequest getWorkloadRequest = new GetWorkloadRequest();
+                        getWorkloadRequest.setUsername(trainer.getUsername());
+                        getWorkloadRequest.setActive(trainer.isActive());
+                        getWorkloadRequest.setFirstName(trainer.getFirstName());
+                        getWorkloadRequest.setLastName(trainer.getLastName());
+                        getWorkloadRequest.setTrainingDate(training.getTrainingDate());
+                        getWorkloadRequest.setDuration(training.getTrainingDuration());
+                        getWorkloadRequest.setAction("DELETE");
+
+                        LOGGER.info("Calling secondary microservice for trainer: {} on training date: {} with {} hours lost",
+                                trainer.getUsername(), training.getTrainingDate(), training.getTrainingDuration());
+                        updateWorkload(getWorkloadRequest);
+                    }
+                }
+            }
             boolean isDeleted = traineeDao.delete(deleteTraineeRequestDto.getUsername());
             if (!isDeleted) {
                 LOGGER.warn("There is no such trainee found...");
             }
+
         } catch (EntityNotFoundException | InvalidDataException e) {
             LOGGER.warn("Entity not found or data is invalid...");
         }
     }
+    private void updateWorkload(GetWorkloadRequest getWorkloadRequest) {
+        try {
+            String url = secondaryMicroserviceUrl + "/workload";
 
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<GetWorkloadRequest> requestEntity = new HttpEntity<>(getWorkloadRequest, headers);
+
+            ResponseEntity<?> response = restTemplate.postForEntity(url, requestEntity, Void.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOGGER.info("Successfully updated workload in Secondary Microservice");
+            } else {
+                LOGGER.error("Failed to update workload. Response: {}", response.getStatusCode());
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error while calling Secondary Microservice: {}", e.getMessage());
+        }
+    }
     @Override
     public GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) {
         LOGGER.debug("Retrieving a trainee by username...");

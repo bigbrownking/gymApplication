@@ -9,7 +9,9 @@ import org.example.service.GymUserDetailsService;
 import org.example.service.LoginAttemptService;
 import org.example.util.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,6 +23,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @Tag(name = "User", description = "API for user authentication")
@@ -52,22 +57,22 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequestDto loginRequestDto) {
-        String username = loginRequestDto.getUsername();
-        if (loginAttemptService.isBlocked(username)) {
-            return new ResponseEntity<>("User is blocked due to too many login attempts. Please try again later.", HttpStatus.LOCKED);
-        }
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, loginRequestDto.getPassword())
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            String jwt = jwtTokenUtil.generateToken(userDetails);
-            loginAttemptService.loginSucceeded(username);
-            return new ResponseEntity<>(jwt, HttpStatus.OK);
+            if (loginAttemptService.isBlocked(loginRequestDto.getUsername())) {
+                return new ResponseEntity<>("User is blocked due to too many login attempts. Please try again later.", HttpStatus.LOCKED);
+            }
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword()));
+
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequestDto.getUsername());
+            final String accessToken = jwtTokenUtil.generateToken(userDetails);
+
+              loginAttemptService.loginSucceeded(loginRequestDto.getUsername());
+
+            return ResponseEntity.ok().body(accessToken);
         } catch (BadCredentialsException | DisabledException ex) {
-            loginAttemptService.loginFailed(username);
+            loginAttemptService.loginFailed(loginRequestDto.getUsername());
             throw ex;
         }
     }

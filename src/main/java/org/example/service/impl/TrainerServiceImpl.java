@@ -73,7 +73,7 @@ public class TrainerServiceImpl implements TrainerService {
             List<String> trainingTypes = trainingDao.getTrainingTypes().stream()
                     .map(TrainingTypeEntity::getTrainingTypeName)
                     .toList();
-
+            LOGGER.warn("TRAINING TYPES: {}", trainingTypes);
             if (!trainingTypes.contains(requestedSpecialization)) {
                 LOGGER.warn("Invalid specialization: There is no such training type...");
                 return null; // Consider throwing an exception instead
@@ -96,7 +96,7 @@ public class TrainerServiceImpl implements TrainerService {
 
             return responseDto;
         } catch (InvalidDataException e) {
-            LOGGER.warn("Data is invalid...");
+            LOGGER.warn("An error occurred, while retrieving the training types: " + e.getMessage());
             return null;
         }
     }

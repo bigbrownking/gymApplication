@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface TrainingDao {
     void create(Training training) throws InvalidDataException;
-    List<TrainingTypeEntity> getTrainingTypes() throws InvalidDataException;
+    List<TrainingTypeEntity> getTrainingTypes();
 
 }

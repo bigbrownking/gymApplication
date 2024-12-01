@@ -40,7 +40,7 @@ public class TrainingController {
         return ResponseEntity.ok(response);
     }
 
-
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Register a new training")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Training successfully registered"),

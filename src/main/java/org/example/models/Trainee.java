@@ -6,6 +6,8 @@ import lombok.Setter;
 
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +24,7 @@ public class Trainee extends User{
     private Long traineeId;
 
     @Column(name = "date_of_birth")
-    private Date dateOfBirth;
+    private LocalDateTime dateOfBirth;
 
     @Column(name = "address")
     private String address;
@@ -33,7 +35,7 @@ public class Trainee extends User{
 
     public Trainee(String firstName,
                    String lastName,
-                   Date dateOfBirth, String address) {
+                   LocalDateTime dateOfBirth, String address) {
         super(firstName, lastName);
         this.dateOfBirth = dateOfBirth;
         this.address = address;
