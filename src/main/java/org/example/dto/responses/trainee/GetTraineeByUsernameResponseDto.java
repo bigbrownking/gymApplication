@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.dto.TrainerDto;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public class GetTraineeByUsernameResponseDto {
     private String firstName;
     private String lastName;
-    private Date dateOfBirth;
+    private LocalDateTime dateOfBirth;
     private String address;
     private boolean isActive;
 

@@ -35,6 +35,7 @@ public class TrainingMapperImpl implements TrainingMapper {
         training.setTrainingName(createTrainingRequestDto.getTrainingName());
         training.setTrainingDate(createTrainingRequestDto.getTrainingDate());
         training.setTrainee(trainee);
+        training.setTrainingType(trainer.getSpecialization());
         training.setTrainer(trainer);
         training.setTrainingDuration(createTrainingRequestDto.getDuration());
 

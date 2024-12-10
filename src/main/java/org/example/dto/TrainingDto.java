@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.models.TrainingTypeEntity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -11,7 +12,7 @@ import java.util.Date;
 public class TrainingDto {
 
     private String trainingName;
-    private Date trainingDate;
+    private LocalDateTime trainingDate;
     private TrainingTypeEntity trainingType;
     private Integer duration;
     private String traineeName;

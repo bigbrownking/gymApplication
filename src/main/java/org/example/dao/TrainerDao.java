@@ -7,6 +7,7 @@ import org.example.models.Trainer;
 import org.example.models.Training;
 import org.example.models.TrainingTypeEntity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,7 @@ public interface TrainerDao {
     void update(Trainer trainer) throws EntityNotFoundException, InvalidDataException;
     Optional<Trainer> findByUsername(String username) throws EntityNotFoundException;
     List<Trainer> listAll() throws InvalidDataException;
-    List<Training> getTrainingByCriteria(String username, Date startDate, Date endDate, String traineeName);
+    List<Training> getTrainingByCriteria(String username, LocalDateTime startDate, LocalDateTime endDate, String traineeName);
     boolean isSpecializationValid(TrainingTypeEntity trainingTypeEntity);
     List<Trainee> allTraineesOfTrainer(String username) throws EntityNotFoundException;
 }

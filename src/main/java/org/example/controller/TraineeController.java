@@ -9,12 +9,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.dto.requests.trainee.*;
 import org.example.dto.requests.user.*;
 import org.example.dto.responses.trainee.*;
+import org.example.models.TrainingTypeEntity;
 import org.example.service.TraineeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/trainee")
@@ -70,7 +74,6 @@ public class TraineeController {
     }
 
 
-    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get trainers not assigned to a trainee", description = "Retrieve a list of trainers who are not assigned to a specific trainee", tags = {"Trainee"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List retrieved successfully",
@@ -79,7 +82,9 @@ public class TraineeController {
     })
     @GetMapping("/notAssignedTrainers")
     public ResponseEntity<GetNotAssignedTrainersResponseDto> getNotAssignedTrainers(
-            @RequestBody GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto) {
+            @RequestParam String username) {
+        GetNotAssignedTrainersRequestDto getNotAssignedTrainersRequestDto = new GetNotAssignedTrainersRequestDto();
+        getNotAssignedTrainersRequestDto.setUsername(username);
         GetNotAssignedTrainersResponseDto response = traineeService.getTrainersNotAssignedToTrainee(getNotAssignedTrainersRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -94,7 +99,9 @@ public class TraineeController {
     })
     @GetMapping("/profile")
     public ResponseEntity<GetTraineeByUsernameResponseDto> getTraineeByUsername(
-            @RequestBody GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) {
+            @RequestParam String username) {
+        GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto = new GetTraineeByUsernameRequestDto();
+        getTraineeByUsernameRequestDto.setUsername(username);
         GetTraineeByUsernameResponseDto response = traineeService.getTraineeByUsername(getTraineeByUsernameRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -109,7 +116,17 @@ public class TraineeController {
     })
     @GetMapping("/trainings")
     public ResponseEntity<GetTraineeTrainingListResponseDto> getTrainings(
-            @RequestBody GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto) {
+            @RequestParam  String username,
+            @RequestParam(required = false) LocalDateTime fromDate,
+            @RequestParam(required = false) LocalDateTime toDate,
+            @RequestParam(required = false) String trainerName,
+            @RequestParam(required = false) TrainingTypeEntity trainingType) {
+        GetTraineeTrainingListRequestDto getTraineeTrainingListRequestDto = new GetTraineeTrainingListRequestDto();
+        getTraineeTrainingListRequestDto.setUsername(username);
+        getTraineeTrainingListRequestDto.setTrainingType(trainingType);
+        getTraineeTrainingListRequestDto.setFromDate(fromDate);
+        getTraineeTrainingListRequestDto.setTrainerName(trainerName);
+        getTraineeTrainingListRequestDto.setToDate(toDate);
         GetTraineeTrainingListResponseDto response = traineeService.getTrainingByCriteria(getTraineeTrainingListRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
 

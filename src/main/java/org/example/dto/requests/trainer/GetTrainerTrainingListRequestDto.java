@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.lang.Nullable;
 
 import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -15,10 +17,10 @@ public class GetTrainerTrainingListRequestDto {
     private String username;
 
     @Nullable
-    private Date fromDate;
+    private LocalDateTime fromDate;
 
     @Nullable
-    private Date toDate;
+    private LocalDateTime toDate;
 
     @Nullable
     private String traineeName;

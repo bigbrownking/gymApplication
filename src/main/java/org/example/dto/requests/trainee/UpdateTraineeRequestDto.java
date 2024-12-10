@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.lang.Nullable;
 
 import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -21,7 +23,7 @@ public class UpdateTraineeRequestDto {
     private String lastName;
 
     @Nullable
-    private Date dateOfBirth;
+    private LocalDateTime dateOfBirth;
 
     @Nullable
     private String address;

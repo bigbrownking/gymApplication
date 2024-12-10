@@ -7,6 +7,7 @@ import org.example.models.Trainer;
 import org.example.models.Training;
 import org.example.models.TrainingTypeEntity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,7 @@ public interface TraineeDao {
     boolean delete(String username) throws EntityNotFoundException, InvalidDataException;
     List<Trainee> listAll() throws InvalidDataException;
     Optional<Trainee> findByUsername(String username) throws EntityNotFoundException;
-    List<Training> getTrainingByCriteria(String username, Date startDate, Date endDate,  String trainerName, TrainingTypeEntity trainingType);
+    List<Training> getTrainingByCriteria(String username, LocalDateTime startDate, LocalDateTime endDate, String trainerName, TrainingTypeEntity trainingType);
     List<Trainer> getTrainersNotAssignedToTrainee(String username) throws EntityNotFoundException, InvalidDataException;
     List<Trainer> getTrainersAssignedToTrainee(String username) throws EntityNotFoundException, InvalidDataException;
 }

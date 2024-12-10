@@ -1,61 +1,51 @@
 package org.example.dao.impl;
 
-import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.example.dao.TrainingDao;
 import org.example.exceptions.InvalidDataException;
 import org.example.metrics.DatabaseQueryMetrics;
-import org.example.models.Trainee;
 import org.example.models.Training;
 import org.example.models.TrainingTypeEntity;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import jakarta.persistence.TypedQuery;
+import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class TrainingDaoImpl implements TrainingDao {
-    private final SessionFactory sessionFactory;
+    @PersistenceContext
+    private final EntityManager entityManager;
     private final DatabaseQueryMetrics databaseQueryMetrics;
 
-    @Autowired
-    public TrainingDaoImpl(EntityManagerFactory entityManagerFactory, DatabaseQueryMetrics databaseQueryMetrics) {
-        this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-        this.databaseQueryMetrics = databaseQueryMetrics;
-    }
-
     @Override
+    @Transactional
     public void create(Training training) throws InvalidDataException {
         try {
             databaseQueryMetrics.trackQueryDuration(() -> {
-                Session session = sessionFactory.getCurrentSession();
-                Transaction transaction = null;
                 try {
-                    transaction = session.beginTransaction();
                     TrainingTypeEntity trainingType = training.getTrainingType();
-                    TrainingTypeEntity existingTrainingType = session.createQuery("FROM TrainingTypeEntity WHERE trainingTypeName = :name", TrainingTypeEntity.class).setParameter("name", trainingType.getTrainingTypeName()).uniqueResult();
+                    TypedQuery<TrainingTypeEntity> query = entityManager.createQuery(
+                            "FROM TrainingTypeEntity WHERE trainingTypeName = :name", TrainingTypeEntity.class);
+                    query.setParameter("name", trainingType.getTrainingTypeName());
+                    TrainingTypeEntity existingTrainingType = query.getResultList().stream().findFirst().orElse(null);
 
                     if (existingTrainingType == null) {
-                        session.persist(trainingType);
+                        entityManager.persist(trainingType);
                     } else {
                         training.setTrainingType(existingTrainingType);
                     }
-                    session.persist(training);
-                    transaction.commit();
+                    entityManager.persist(training);
                 } catch (Exception e) {
-                    if (transaction != null) {
-                        transaction.rollback();
-                    }
-                    e.printStackTrace();
-                } finally {
-                    session.close();
+                    throw new InvalidDataException("An error occurred while creating training: " + e.getMessage());
                 }
+                return null;
             });
-        } catch (Exception e){
-            throw new InvalidDataException("An error occurred, while creating training: " + e.getMessage());
+        } catch (Exception e) {
+            throw new InvalidDataException("An unexpected error occurred while creating training: " + e.getMessage());
         }
     }
 
@@ -63,25 +53,14 @@ public class TrainingDaoImpl implements TrainingDao {
     public List<TrainingTypeEntity> getTrainingTypes() throws InvalidDataException {
         try {
             return databaseQueryMetrics.trackQueryDuration(() -> {
-                Session session = sessionFactory.getCurrentSession();
-                Transaction transaction = null;
-                List<TrainingTypeEntity> trainingTypeEntities = null;
                 try {
-                    transaction = session.beginTransaction();
-                    trainingTypeEntities = session.createQuery("FROM TrainingTypeEntity", TrainingTypeEntity.class).getResultList();
-                    transaction.commit();
+                    return entityManager.createQuery("FROM TrainingTypeEntity", TrainingTypeEntity.class).getResultList();
                 } catch (Exception e) {
-                    if (transaction != null) {
-                        transaction.rollback();
-                    }
-                } finally {
-                    session.close();
-
+                    throw new InvalidDataException("An error occurred while retrieving training types: " + e.getMessage());
                 }
-                return trainingTypeEntities;
             });
-        } catch (Exception e){
-            throw new InvalidDataException("An error occurred, while retrieving the training types: "  + e.getMessage());
+        } catch (Exception e) {
+            throw new InvalidDataException("An unexpected error occurred while retrieving training types: " + e.getMessage());
         }
     }
 }

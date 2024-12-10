@@ -1,4 +1,4 @@
--- first to execute
+
 CREATE TABLE IF NOT EXISTS trainees (
     id BIGSERIAL PRIMARY KEY,          -- Primary Key
     first_name VARCHAR(255) NOT NULL,  -- Inherited from User
@@ -10,7 +10,11 @@ CREATE TABLE IF NOT EXISTS trainees (
     address VARCHAR(255)
 );
 
--- third to execute
+CREATE TABLE IF NOT EXISTS training_types (
+    id BIGSERIAL PRIMARY KEY,
+    training_type_name VARCHAR(255) NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS trainers (
     id BIGSERIAL PRIMARY KEY,          -- Primary Key
     first_name VARCHAR(255) NOT NULL,  -- Inherited from User
@@ -21,11 +25,8 @@ CREATE TABLE IF NOT EXISTS trainers (
     specialization_id BIGINT REFERENCES training_types(id)
 );
 
--- second to execute
-CREATE TABLE IF NOT EXISTS training_types (
-    id BIGSERIAL PRIMARY KEY,
-    training_type_name VARCHAR(255) NOT NULL UNIQUE
-);
+
+
 
 -- last to execute
 CREATE TABLE IF NOT EXISTS trainings (
