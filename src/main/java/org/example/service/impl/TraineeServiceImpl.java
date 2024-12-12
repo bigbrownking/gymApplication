@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.dao.TraineeDao;
 import org.example.dto.TrainerDto;
 import org.example.dto.requests.trainee.*;
-import org.example.dto.requests.trainer.GetWorkloadRequest;
+import org.example.dto.requests.GetWorkloadRequest;
 import org.example.dto.requests.user.ActivateUserRequestDto;
 import org.example.dto.requests.user.ChangePasswordRequestDto;
 import org.example.dto.requests.user.DeactivateUserRequestDto;
@@ -21,14 +21,10 @@ import org.example.service.TraineeService;
 import org.example.util.Generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,16 +33,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TraineeServiceImpl.class);
+    private static final String WORKLOAD_QUEUE = "workload_queue";
     private final TraineeDao traineeDao;
     private final UserService userService;
     private final TraineeMapper traineeMapper;
     private final TrainerMapper trainerMapper;
     private final TrainingMapper trainingMapper;
     private final PasswordEncoder passwordEncoder;
-    private final RestTemplate restTemplate;
-
-    @Value("${secondary.microservice.url}")
-    private String secondaryMicroserviceUrl;
+    private final JmsTemplate jmsTemplate;
 
 
     @Override
@@ -113,6 +107,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto) {
         try {
             LOGGER.debug("Deleting trainee...");
@@ -127,7 +122,7 @@ public class TraineeServiceImpl implements TraineeService {
                             training.getTrainee().getUsername().equals(deleteTraineeRequestDto.getUsername()) &&
                             training.getTrainingDate().isAfter(LocalDateTime.now())) {
 
-
+                        LOGGER.info("Sending workload update message to ActiveMQ...");
                         GetWorkloadRequest getWorkloadRequest = new GetWorkloadRequest();
                         getWorkloadRequest.setUsername(trainer.getUsername());
                         getWorkloadRequest.setActive(trainer.isActive());
@@ -137,9 +132,8 @@ public class TraineeServiceImpl implements TraineeService {
                         getWorkloadRequest.setDuration(training.getTrainingDuration());
                         getWorkloadRequest.setAction("DELETE");
 
-                        LOGGER.info("Calling secondary microservice for trainer: {} on training date: {} with {} hours lost",
-                                trainer.getUsername(), training.getTrainingDate(), training.getTrainingDuration());
-                        updateWorkload(getWorkloadRequest);
+
+                        updateWorkloadAsync(getWorkloadRequest);
                     }
                 }
             }
@@ -152,26 +146,22 @@ public class TraineeServiceImpl implements TraineeService {
             LOGGER.warn("Entity not found or data is invalid...");
         }
     }
-    private void updateWorkload(GetWorkloadRequest getWorkloadRequest) {
+    private void updateWorkloadAsync(GetWorkloadRequest getWorkloadRequest) {
         try {
-            String url = secondaryMicroserviceUrl + "/workload";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<GetWorkloadRequest> requestEntity = new HttpEntity<>(getWorkloadRequest, headers);
-
-            ResponseEntity<?> response = restTemplate.postForEntity(url, requestEntity, Void.class);
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                LOGGER.info("Successfully updated workload in Secondary Microservice");
-            } else {
-                LOGGER.error("Failed to update workload. Response: {}", response.getStatusCode());
-            }
+            LOGGER.info("Sending workload update message to ActiveMQ...");
+            jmsTemplate.convertAndSend(WORKLOAD_QUEUE, getWorkloadRequest, message -> {
+                message.setStringProperty("_type", "org.example.dto.requests.GetWorkloadRequest");
+                message.setStringProperty("actionType", getWorkloadRequest.getAction());
+                message.setStringProperty("username", getWorkloadRequest.getUsername());
+                message.setDoubleProperty("duration", getWorkloadRequest.getDuration());
+                return message;
+            });
+            LOGGER.info("Message sent with headers to ActiveMQ: " + getWorkloadRequest);
         } catch (Exception e) {
-            LOGGER.error("Error while calling Secondary Microservice: {}", e.getMessage());
+            LOGGER.error("Failed to send message to ActiveMQ: {}", e.getMessage());
         }
     }
+
     @Override
     public GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) {
         LOGGER.debug("Retrieving a trainee by username...");
