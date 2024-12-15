@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +66,7 @@ class TrainingControllerTest {
         createTrainingRequestDto.setTraineeUsername("traineeUser");
         createTrainingRequestDto.setTrainerUsername("trainerUser");
         createTrainingRequestDto.setTrainingName("Strength Training");
-        createTrainingRequestDto.setTrainingDate(new Date());
+        createTrainingRequestDto.setTrainingDate(LocalDateTime.now());
         createTrainingRequestDto.setDuration(60);
 
         doNothing().when(trainingService).createTraining(any(CreateTrainingRequestDto.class));

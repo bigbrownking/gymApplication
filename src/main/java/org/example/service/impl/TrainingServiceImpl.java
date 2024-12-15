@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.dao.TraineeDao;
 import org.example.dao.TrainerDao;
 import org.example.dao.TrainingDao;
-import org.example.dto.requests.trainer.GetWorkloadRequest;
+import org.example.dto.requests.GetWorkloadRequest;
 import org.example.dto.requests.training.CreateTrainingRequestDto;
 import org.example.dto.responses.trainer.WorkloadResponse;
 import org.example.dto.responses.training.GetTrainingTypesResponseDto;
@@ -18,13 +18,9 @@ import org.example.models.TrainingTypeEntity;
 import org.example.service.TrainingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,17 +29,16 @@ import java.util.List;
 public class TrainingServiceImpl implements TrainingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainingServiceImpl.class);
 
+    private static final String WORKLOAD_QUEUE = "workload_queue";
     private final TrainingDao trainingDao;
     private final TraineeDao traineeDao;
     private final TrainerDao trainerDao;
     private final TrainingMapper trainingMapper;
-    private final RestTemplate restTemplate;
-
-    @Value("${secondary.microservice.url}")
-    private String secondaryMicroserviceUrl;
+    private final JmsTemplate jmsTemplate;
 
 
     @Override
+    @Transactional
     @CircuitBreaker(name = "workloadService", fallbackMethod = "processWorkLoadFallback")
     public void createTraining(CreateTrainingRequestDto createTrainingRequestDto) {
         try {
@@ -76,33 +71,28 @@ public class TrainingServiceImpl implements TrainingService {
             getWorkloadRequest.setActive(trainer.isActive());
             getWorkloadRequest.setAction("ADD");
 
-            updateWorkload(getWorkloadRequest);
-
+            updateWorkloadAsync(getWorkloadRequest);
 
         } catch (InvalidDataException e) {
             LOGGER.warn("Data is invalid...");
         }
     }
-    private void updateWorkload(GetWorkloadRequest getWorkloadRequest) {
+    private void updateWorkloadAsync(GetWorkloadRequest getWorkloadRequest) {
         try {
-            String url = secondaryMicroserviceUrl + "/workload";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<GetWorkloadRequest> requestEntity = new HttpEntity<>(getWorkloadRequest, headers);
-
-            ResponseEntity<?> response = restTemplate.postForEntity(url, requestEntity, Void.class);
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                LOGGER.info("Successfully updated workload in Secondary Microservice");
-            } else {
-                LOGGER.error("Failed to update workload. Response: {}", response.getStatusCode());
-            }
+            LOGGER.info("Sending workload update message to ActiveMQ...");
+            jmsTemplate.convertAndSend(WORKLOAD_QUEUE, getWorkloadRequest, message -> {
+                message.setStringProperty("_type", "org.example.dto.requests.GetWorkloadRequest");
+                message.setStringProperty("actionType", getWorkloadRequest.getAction());
+                message.setStringProperty("username", getWorkloadRequest.getUsername());
+                message.setDoubleProperty("duration", getWorkloadRequest.getDuration());
+                return message;
+            });
+            LOGGER.info("Message sent with headers to ActiveMQ: " + getWorkloadRequest);
         } catch (Exception e) {
-            LOGGER.error("Error while calling Secondary Microservice: {}", e.getMessage());
+            LOGGER.error("Failed to send message to ActiveMQ: {}", e.getMessage());
         }
     }
+
     private WorkloadResponse processWorkLoadFallback(GetWorkloadRequest getWorkloadRequest, Throwable throwable) {
         WorkloadResponse response = new WorkloadResponse();
         response.setUsername(getWorkloadRequest.getUsername());
