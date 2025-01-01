@@ -51,7 +51,9 @@ public class TrainerController {
     })
     @GetMapping("/profile")
     public ResponseEntity<GetTrainerByUsernameResponseDto> getTrainerByUsername(
-            @RequestBody GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto) {
+            @RequestParam String username) {
+        GetProfileRequest getTrainerByUsernameRequestDto = new GetProfileRequest();
+        getTrainerByUsernameRequestDto.setUsername(username);
         GetTrainerByUsernameResponseDto response = trainerService.getTrainerByUsername(getTrainerByUsernameRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

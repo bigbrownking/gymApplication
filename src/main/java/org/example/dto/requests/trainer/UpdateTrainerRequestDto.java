@@ -1,6 +1,8 @@
 package org.example.dto.requests.trainer;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.models.TrainingTypeEntity;
 import org.springframework.lang.Nullable;
@@ -10,6 +12,8 @@ import jakarta.validation.constraints.NotNull;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpdateTrainerRequestDto {
 
     @NotNull(message = "Username is required")

@@ -1,10 +1,7 @@
 package org.example.service;
 
 import org.example.dto.requests.trainee.*;
-import org.example.dto.requests.user.ActivateUserRequestDto;
-import org.example.dto.requests.user.ChangePasswordRequestDto;
-import org.example.dto.requests.user.DeactivateUserRequestDto;
-import org.example.dto.requests.user.LoginRequestDto;
+import org.example.dto.requests.user.*;
 import org.example.dto.responses.trainee.*;
 import org.example.exceptions.*;
 
@@ -15,7 +12,7 @@ public interface TraineeService {
 
     void deleteTrainee(DeleteTraineeRequestDto deleteTraineeRequestDto);
 
-    GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto);
+    GetTraineeByUsernameResponseDto getTraineeByUsername(GetProfileRequest getTraineeByUsernameRequestDto);
 
     void changePassword(ChangePasswordRequestDto changePasswordRequestDto);
 
