@@ -28,18 +28,12 @@ public class RequestSteps {
 
     @Given("I have {string}")
     public void setup(String option) {
-        if(isPositive(option)){
-            positiveCases(option);
-            System.out.println("REQUEST IN FIRST STEP IS:" + request);
-        }else {
-            negativeCases(option);
-        }
-    }
-    private boolean isPositive(String option){
-        return option.split(" ")[0].equals("valid");
+        cases(option);
+        System.out.println("REQUEST IN FIRST STEP IS:" + request);
     }
 
-    private void positiveCases(String option) {
+
+    private void cases(String option) {
         switch (option) {
             case "valid activation request":
                 request = new ActivateUserRequestDto("some.name", false);
@@ -84,9 +78,5 @@ public class RequestSteps {
                 request = null;
                 break;
         }
-    }
-
-    private void negativeCases(String option) {
-
     }
 }

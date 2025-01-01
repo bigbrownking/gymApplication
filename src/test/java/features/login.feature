@@ -9,6 +9,7 @@ Feature: Login
     Then the response should contain the jwt token
 
   Scenario: Login with incorrect credentials
-    Given I have "invalid login request"
+    Given I have "valid login request"
+    And user doesn't exist
     When login
     Then the response should contain validation error messages

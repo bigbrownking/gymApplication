@@ -14,11 +14,13 @@ Feature: Profile
     Then the response should contain the "trainer" profile details
 
   Scenario: Fail to retrieve non-existent trainee profile
-    Given I have "invalid profile request"
+    Given I have "valid profile request"
     When profile "trainee"
-    Then I should receive a "404 Not Found" response
+    And "trainee" profile doesn't exist
+    Then "trainee" profile operation should throw EntityNotFoundException
 
   Scenario: Fail to retrieve non-existent trainer profile
-    Given I have "invalid profile request"
+    Given I have "valid profile request"
     When profile "trainer"
-    Then I should receive a "404 Not Found" response
+    And "trainer" profile doesn't exist
+    Then "trainer" profile operation should throw EntityNotFoundException
