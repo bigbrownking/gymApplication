@@ -8,6 +8,7 @@ import org.example.dto.requests.GetWorkloadRequest;
 import org.example.dto.requests.user.ActivateUserRequestDto;
 import org.example.dto.requests.user.ChangePasswordRequestDto;
 import org.example.dto.requests.user.DeactivateUserRequestDto;
+import org.example.dto.requests.user.GetProfileRequest;
 import org.example.dto.responses.trainee.*;
 import org.example.exceptions.EntityNotFoundException;
 import org.example.exceptions.InvalidDataException;
@@ -163,7 +164,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public GetTraineeByUsernameResponseDto getTraineeByUsername(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) {
+    public GetTraineeByUsernameResponseDto getTraineeByUsername(GetProfileRequest getTraineeByUsernameRequestDto) {
         LOGGER.debug("Retrieving a trainee by username...");
         if (getTraineeByUsernameRequestDto == null) {
             LOGGER.warn("Invalid request...");

@@ -4,12 +4,12 @@ import org.example.dao.TrainerDao;
 import org.example.dao.TrainingDao;
 import org.example.dto.TraineeDto;
 import org.example.dto.requests.trainer.CreateTrainerRequestDto;
-import org.example.dto.requests.trainer.GetTrainerByUsernameRequestDto;
 import org.example.dto.requests.trainer.GetTrainerTrainingListRequestDto;
 import org.example.dto.requests.trainer.UpdateTrainerRequestDto;
 import org.example.dto.requests.user.ActivateUserRequestDto;
 import org.example.dto.requests.user.ChangePasswordRequestDto;
 import org.example.dto.requests.user.DeactivateUserRequestDto;
+import org.example.dto.requests.user.GetProfileRequest;
 import org.example.dto.responses.trainer.CreateTrainerResponseDto;
 import org.example.dto.responses.trainer.GetTrainerByUsernameResponseDto;
 import org.example.dto.responses.trainer.GetTrainerTrainingListResponseDto;
@@ -31,7 +31,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TrainerServiceImpl implements TrainerService {
@@ -129,7 +128,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public GetTrainerByUsernameResponseDto getTrainerByUsername(GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto) {
+    public GetTrainerByUsernameResponseDto getTrainerByUsername(GetProfileRequest getTrainerByUsernameRequestDto) {
         try {
             LOGGER.debug("Retrieving a trainer by username...");
             if (getTrainerByUsernameRequestDto == null) {

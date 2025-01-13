@@ -1,6 +1,8 @@
 package org.example.dto.requests.trainer;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.lang.Nullable;
 
@@ -11,6 +13,8 @@ import java.util.Date;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class GetTrainerTrainingListRequestDto {
 
     @NotNull(message = "Username is required")

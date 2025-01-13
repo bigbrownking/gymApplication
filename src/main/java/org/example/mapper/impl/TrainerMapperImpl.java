@@ -4,8 +4,8 @@ import org.example.dto.TraineeDto;
 import org.example.dto.TrainerDto;
 import org.example.dto.TrainingDto;
 import org.example.dto.requests.trainer.CreateTrainerRequestDto;
-import org.example.dto.requests.trainer.GetTrainerByUsernameRequestDto;
 import org.example.dto.requests.trainer.UpdateTrainerRequestDto;
+import org.example.dto.requests.user.GetProfileRequest;
 import org.example.dto.responses.trainer.CreateTrainerResponseDto;
 import org.example.dto.responses.trainer.GetTrainerByUsernameResponseDto;
 import org.example.dto.responses.trainer.GetTrainerTrainingListResponseDto;
@@ -94,7 +94,7 @@ public class TrainerMapperImpl implements TrainerMapper {
     }
 
     @Override
-    public String toTrainer(GetTrainerByUsernameRequestDto getTrainerByUsernameRequestDto) {
+    public String toTrainer(GetProfileRequest getTrainerByUsernameRequestDto) {
         if(getTrainerByUsernameRequestDto == null){
             return null;
         }

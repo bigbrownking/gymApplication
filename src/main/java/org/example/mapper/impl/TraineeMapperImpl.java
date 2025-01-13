@@ -4,6 +4,7 @@ import org.example.dto.TraineeDto;
 import org.example.dto.TrainerDto;
 import org.example.dto.TrainingDto;
 import org.example.dto.requests.trainee.*;
+import org.example.dto.requests.user.GetProfileRequest;
 import org.example.dto.responses.trainee.*;
 import org.example.mapper.TraineeMapper;
 import org.example.models.Trainee;
@@ -119,7 +120,7 @@ public class TraineeMapperImpl implements TraineeMapper {
     }
 
     @Override
-    public String toGetUsernameTrainee(GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto) {
+    public String toGetUsernameTrainee(GetProfileRequest getTraineeByUsernameRequestDto) {
         if(getTraineeByUsernameRequestDto == null){
             return null;
         }

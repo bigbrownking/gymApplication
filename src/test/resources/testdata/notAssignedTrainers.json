@@ -1,0 +1,29 @@
+[
+  {
+    "username": "trainer_alex",
+    "firstName": "Alex",
+    "lastName": "Johnson",
+    "specialization": {
+      "id": 1,
+      "trainingTypeName": "Strength Training"
+    }
+  },
+  {
+    "username": "trainer_mia",
+    "firstName": "Mia",
+    "lastName": "Roberts",
+    "specialization": {
+      "id": 2,
+      "trainingTypeName": "Cardio"
+    }
+  },
+  {
+    "username": "trainer_chris",
+    "firstName": "Chris",
+    "lastName": "Evans",
+    "specialization": {
+      "id": 3,
+      "trainingTypeName": "Yoga"
+    }
+  }
+]

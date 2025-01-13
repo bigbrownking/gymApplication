@@ -1,0 +1,32 @@
+[
+  {
+    "trainingName": "Chest and Triceps Workout",
+    "trainingDate": "2025-01-02T07:00:00",
+    "trainingType": {
+      "id": 1,
+      "trainingTypeName": "Strength Training"
+    },
+    "duration": 60,
+    "traineeName": "Alex Johnson"
+  },
+  {
+    "trainingName": "Leg Day",
+    "trainingDate": "2025-01-03T08:30:00",
+    "trainingType": {
+      "id": 1,
+      "trainingTypeName": "Strength Training"
+    },
+    "duration": 75,
+    "traineeName": "Mia Roberts"
+  },
+  {
+    "trainingName": "Cardio and Core",
+    "trainingDate": "2025-01-04T06:15:00",
+    "trainingType": {
+      "id": 3,
+      "trainingTypeName": "Cardio"
+    },
+    "duration": 45,
+    "traineeName": "Chris Evans"
+  }
+]

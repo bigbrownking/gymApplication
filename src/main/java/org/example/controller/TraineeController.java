@@ -100,7 +100,7 @@ public class TraineeController {
     @GetMapping("/profile")
     public ResponseEntity<GetTraineeByUsernameResponseDto> getTraineeByUsername(
             @RequestParam String username) {
-        GetTraineeByUsernameRequestDto getTraineeByUsernameRequestDto = new GetTraineeByUsernameRequestDto();
+        GetProfileRequest getTraineeByUsernameRequestDto = new GetProfileRequest();
         getTraineeByUsernameRequestDto.setUsername(username);
         GetTraineeByUsernameResponseDto response = traineeService.getTraineeByUsername(getTraineeByUsernameRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
